@@ -43,7 +43,7 @@ export function BlockItem({
   const height = (view.endMin - view.startMin) * MINUTE_PX;
   const done = block.status === "done";
   const draft = block.status === "draft";
-  const tall = height >= 44;
+  const tall = height >= 34;
 
   const style: React.CSSProperties = isGoal
     ? { background: color, color: "var(--color-bg)" }
@@ -67,13 +67,13 @@ export function BlockItem({
         } ${draft ? "border-dashed opacity-60" : ""} ${done ? "opacity-50" : ""} ${view.unresolved ? "!border-2 !border-danger" : ""}`}
         style={{ ...style, height }}
       >
-        <span className={`flex h-full flex-col px-2 ${tall ? "py-1" : "justify-center"}`}>
+        <span className={`flex h-full flex-col px-2 ${tall ? "py-0.5" : "justify-center"}`}>
           <span className="flex min-w-0 items-center gap-1">
             {done ? <span aria-hidden="true" className="inline-block animate-[pop_400ms_ease-out]">✓</span> : null}
-            <span className="truncate text-[15px] leading-tight font-semibold">{view.title}</span>
+            <span className="truncate text-[14px] leading-4 font-semibold">{view.title}</span>
           </span>
           {tall ? (
-            <span className={`flex min-w-0 items-center gap-2 text-caption ${isGoal ? "" : "text-text-muted"}`}>
+            <span className={`flex min-w-0 items-center gap-2 text-[12px] leading-4 ${isGoal ? "" : "text-text-muted"}`}>
               <span className="shrink-0">{view.timeLabel}</span>
               <PomodoroDots completed={block.completed_pomodoros} total={block.planned_pomodoros} decorative />
               <span className="truncate">{view.owner}</span>

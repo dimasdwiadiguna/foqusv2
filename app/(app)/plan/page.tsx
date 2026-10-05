@@ -71,8 +71,9 @@ function Plan() {
             <QuickAddButton preset={{ thisWeek: true }} />
           </>
         }
-      />
-      <WeekStrip date={date} today={today} onSelect={go} />
+      >
+        <WeekStrip date={date} today={today} onSelect={go} />
+      </ScreenHeader>
       <h2 className="sr-only">{formatDayHeader(date)}</h2>
       <TimelineBoard
         date={date}

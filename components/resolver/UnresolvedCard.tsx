@@ -11,7 +11,7 @@ export function UnresolvedCard() {
   if (!blocks || blocks.length === 0) return null;
   const n = blocks.length;
   return (
-    <section aria-label="Unresolved blocks" className="mb-4 flex items-center gap-3 rounded-card border border-danger/60 bg-surface p-4">
+    <section aria-label="Unresolved blocks" className="mb-2 flex items-center gap-3 rounded-card border border-danger/60 bg-surface px-3 py-1.5">
       <span aria-hidden="true" className="flex size-7 shrink-0 items-center justify-center rounded-full bg-danger font-bold text-bg">
         ?
       </span>

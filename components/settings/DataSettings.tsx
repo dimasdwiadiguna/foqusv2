@@ -66,8 +66,8 @@ export function DataSettings({ timeZone }: { timeZone: string }) {
 
   return (
     <SettingsGroup title="Data">
-      <p className="px-4 py-3 text-text-muted">Until an account is connected, your data lives only on this device. Export a backup now and then.</p>
-      <div className="flex gap-2 px-4 pb-3">
+      <p className="px-3 py-2 text-text-muted">Until an account is connected, your data lives only on this device. Export a backup now and then.</p>
+      <div className="flex gap-2 px-3 pb-2">
         <Button className="flex-1" onClick={() => void exportNow()}>
           Export backup
         </Button>
@@ -86,7 +86,7 @@ export function DataSettings({ timeZone }: { timeZone: string }) {
           }}
         />
       </div>
-      <p className="px-4 py-3 text-caption text-text-muted">
+      <p className="px-3 py-2 text-caption text-text-muted">
         {storage.used !== null ? `Using ${formatBytes(storage.used)} on this device.` : "Storage use is not available in this browser."}{" "}
         {storage.persisted === true
           ? "The browser keeps it even when space runs low."

@@ -20,9 +20,10 @@ export default function TodayPage() {
 
   return (
     <>
-      <ScreenHeader actions={<QuickAddButton preset={{ thisWeek: true }} />} title={formatDayHeader(today)} subtitle={formatSeasonWeek(today)} />
+      <ScreenHeader actions={<QuickAddButton preset={{ thisWeek: true }} />} title={formatDayHeader(today)} subtitle={formatSeasonWeek(today)}>
+        <NextCard date={today} onOpenTray={() => setTrayOpen(true)} />
+      </ScreenHeader>
       <UnresolvedCard />
-      <NextCard date={today} onOpenTray={() => setTrayOpen(true)} />
       <TimelineBoard
         date={today}
         weekStart={weekStart}

@@ -10,7 +10,7 @@ Spec and plan: `BRIEF.md` (the brief's own instructions call it `FOQUS-BUILD-BRI
 | 1.2 Areas, goals, and actions | Done |
 | 1.3 Time blocking | Done |
 | 1.4 Focus and the resolver | Done |
-| 1.5 Install, offline shell, and backup | Done; waiting for the owner to check on the iPhone |
+| 1.5 Install, offline shell, and backup | Done |
 | 2.1 Daily loop | Next, after the Stage 1 exit conversation |
 | 2.2 Planning help | Not started |
 | 2.3 Reviews and coach | Not started |
@@ -134,12 +134,21 @@ Choices made where the brief was silent.
 
 ## Deviations
 
+- **Compact type scale** (owner's request at the Stage 1 exit): §6.3's Title 24, Heading 18, Body 16 became 20, 16, 15; inputs stay 16 px. The timeline scale is 1.2 px per minute.
 - **Compact sticky screen header** (owner's request after Step 1.4): every tabbed screen uses one `ScreenHeader` that sticks to the top while scrolling, so "+" and the other actions are always one tap away. It is a single 52 px row (plus the safe-area inset) with the title at 20/700 instead of §6.3's 24/700 Title style, and a one-line subtitle. Long titles wrap to two lines. Plan's arrows and week sit in the header; the goal page's back, title, and ⋯ do too, with area, dates, and Achieve just below. The Plan week strip is two lines (day and date, then the count) instead of three.
 
 ### Refinement after Step 1.4 — compact sticky header
 
 - `ScreenHeader` is sticky, opaque, and carries the top safe-area inset; the scroll area no longer pads the top. The timeline's scroll-to-now and drag auto-scroll allow for the header covering the top.
 - Measured at iPhone size: 57 px before the safe-area inset (was about 88 px for Today and 166 px for Plan with its week strip), and "+" stays visible and opens quick add after scrolling.
+
+### Stage 1 exit — owner feedback and changes
+
+The owner used the app for several days. Feedback: overall it feels nice; four changes, all done:
+
+1. **Sheets jumped when the keyboard closed**, so a tap meant for one control landed on another. Now tapping a button inside a sheet while typing (chips, steppers, toggles) keeps the keyboard up, so the sheet does not move; and whenever a sheet does move with the keyboard, taps inside it are ignored for 350 ms.
+2. **Today's Next card is sticky** under the header, as one compact row (time, dots, title, goal or area, Start). **Plan's week strip is sticky** under its header.
+3. **More compact UI**: the type scale is one step smaller (title 20, heading 16, body 15; form fields stay at 16 px so iOS never zooms), tighter rows, cards, settings groups, and bottom navigation, and the timeline at 1.2 px per minute (a pomodoro is 36 px), so about 5½ hours fit on screen instead of 4. Settings → Schedule shows one line per day. Touch targets stay at 44 pt.
 
 ## Owner tasks
 

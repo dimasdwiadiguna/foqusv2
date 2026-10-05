@@ -30,6 +30,10 @@ export function Sheet({
   const [dragY, setDragY] = useState(0);
   const start = useRef<number | null>(null);
   const [bottom, setBottom] = useState(0);
+  // While the sheet moves with the keyboard, taps inside it are ignored, so a finger aimed at
+  // where a control was cannot land on the one that slid under it.
+  const [settling, setSettling] = useState(false);
+  const settleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   // The latest onClose, so Escape never calls a stale one from when the sheet opened.
   const closeRef = useRef(onClose);
   useEffect(() => {
@@ -72,7 +76,17 @@ export function Sheet({
   useEffect(() => {
     if (!open || typeof window === "undefined" || !window.visualViewport) return;
     const vv = window.visualViewport;
-    const update = () => setBottom(Math.max(0, window.innerHeight - vv.height - vv.offsetTop));
+    const update = () => {
+      const next = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      setBottom((prev) => {
+        if (Math.abs(prev - next) > 40) {
+          setSettling(true);
+          clearTimeout(settleTimer.current);
+          settleTimer.current = setTimeout(() => setSettling(false), 350);
+        }
+        return next;
+      });
+    };
     update();
     vv.addEventListener("resize", update);
     vv.addEventListener("scroll", update);
@@ -113,7 +127,9 @@ export function Sheet({
         aria-labelledby={titleId}
         tabIndex={-1}
         className="absolute inset-x-0 bottom-0 mx-auto flex max-h-[90%] max-w-[480px] flex-col rounded-t-sheet border-t border-border bg-surface outline-none"
-        style={{ transform: dragY ? `translateY(${dragY}px)` : undefined }}
+        style={{ transform: dragY ? `translateY(${dragY}px)` : undefined, pointerEvents: settling ? "none" : undefined }}
+        onPointerDownCapture={keepTyping}
+        onMouseDownCapture={keepTyping}
       >
         <div className="shrink-0 touch-none px-4 pt-2 pb-1" {...grab}>
           <div className="mx-auto h-1.5 w-10 rounded-full bg-border" aria-hidden="true" />
@@ -131,4 +147,18 @@ export function Sheet({
     </div>,
     document.body,
   );
+}
+
+/**
+ * Tapping a button inside a sheet while typing (a chip, a stepper) keeps the keyboard up: the
+ * button does not take focus from the text field, so the sheet does not jump under the next tap.
+ */
+function keepTyping(e: React.PointerEvent | React.MouseEvent) {
+  const active = document.activeElement as HTMLElement | null;
+  const typing =
+    active instanceof HTMLTextAreaElement ||
+    (active instanceof HTMLInputElement && ["text", "search", "number", "email", "url", "tel", ""].includes(active.type));
+  if (!typing || !e.currentTarget.contains(active)) return;
+  const target = e.target as HTMLElement;
+  if (target.closest("button") && !target.closest("input, select, textarea, label")) e.preventDefault();
 }

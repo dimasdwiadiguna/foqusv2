@@ -105,7 +105,7 @@ function GoalBody({ goal, plan, readOnly }: { goal: Goal; plan: SeasonPlan; read
           ) : null
         }
       />
-      <section aria-label="Goal" className="mb-4 flex items-start gap-3">
+      <section aria-label="Goal" className="mb-3 flex items-start gap-3">
         <p className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1 text-caption text-text-muted">
           <span className="inline-flex items-center gap-1.5">
             <span aria-hidden="true" className="size-2.5 rounded-full" style={{ background: color }} />
@@ -123,7 +123,7 @@ function GoalBody({ goal, plan, readOnly }: { goal: Goal; plan: SeasonPlan; read
       </section>
 
       {/* 2. Outcome and metric */}
-      <section aria-labelledby="outcome" className="mb-4 rounded-card border border-border bg-surface p-4">
+      <section aria-labelledby="outcome" className="mb-3 rounded-card border border-border bg-surface p-3">
         <div className="flex items-start gap-4">
           <div className="min-w-0 flex-1">
             <h2 id="outcome" className="text-caption uppercase tracking-wide text-text-muted">
@@ -137,7 +137,7 @@ function GoalBody({ goal, plan, readOnly }: { goal: Goal; plan: SeasonPlan; read
       </section>
 
       {/* 4. Why and anti-goals */}
-      <details className="mb-4 rounded-card border border-border bg-surface px-4">
+      <details className="mb-3 rounded-card border border-border bg-surface px-4">
         <summary className="flex min-h-12 cursor-pointer items-center text-heading">Why and anti-goals</summary>
         <div className="pb-4">
           <h3 className="text-caption text-text-muted">Why it matters</h3>

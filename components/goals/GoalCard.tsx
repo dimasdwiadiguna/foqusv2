@@ -29,7 +29,7 @@ export function GoalCard({
       style={{ borderLeft: `4px solid ${color}` }}
     >
       {sortable ? <DragHandle label={`Change rank of ${goal.title}`} handleProps={sortable.handleProps} /> : <span className="w-2" />}
-      <Link href={href} className="flex min-w-0 flex-1 items-center gap-3 py-3" draggable={false}>
+      <Link href={href} className="flex min-w-0 flex-1 items-center gap-3 py-2" draggable={false}>
         {!closed ? (
           <span
             aria-label={`Rank ${goal.rank}`}

@@ -33,14 +33,13 @@ export function ScheduleSettings() {
           const a = availability.find((w) => w.weekday === d);
           const p = peak.find((w) => w.weekday === d);
           return (
-            <button key={d} type="button" onClick={() => setDay(d)} className="flex min-h-14 w-full items-center gap-3 px-4 py-2 text-left">
+            <button key={d} type="button" onClick={() => setDay(d)} className="flex min-h-11 w-full items-center gap-3 px-3 text-left">
               <span className="w-10 font-semibold">{weekdayShort(d)}</span>
-              <span className="min-w-0 flex-1 text-caption">
-                <span className="block">
-                  Available {a?.start_time}–{a?.end_time}
-                </span>
-                <span className="block text-text-muted">
-                  Peak {p?.start_time}–{p?.end_time}
+              <span className="min-w-0 flex-1 truncate">
+                {a?.start_time}–{a?.end_time}
+                <span className="text-caption text-text-muted">
+                  {" · peak "}
+                  {p?.start_time}–{p?.end_time}
                 </span>
               </span>
               <span aria-hidden="true" className="text-text-muted">
@@ -52,9 +51,9 @@ export function ScheduleSettings() {
       </SettingsGroup>
 
       <SettingsGroup title="Personal blocks">
-        {personal.length === 0 ? <p className="px-4 py-3 text-text-muted">Meals, routines, and rest that FOQUS never schedules over.</p> : null}
+        {personal.length === 0 ? <p className="px-3 py-2 text-text-muted">Meals, routines, and rest that FOQUS never schedules over.</p> : null}
         {personal.map((p) => (
-          <button key={p.id} type="button" onClick={() => setEditing(p)} className="flex min-h-14 w-full items-center gap-3 px-4 py-2 text-left">
+          <button key={p.id} type="button" onClick={() => setEditing(p)} className="flex min-h-12 w-full items-center gap-3 px-3 py-1.5 text-left">
             <span className="min-w-0 flex-1">
               <span className={`block truncate ${p.active ? "" : "text-text-muted line-through"}`}>{p.label}</span>
               <span className="block text-caption text-text-muted">

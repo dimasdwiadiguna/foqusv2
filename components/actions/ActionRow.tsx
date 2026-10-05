@@ -45,7 +45,7 @@ export function ActionRow({
   const open = action.status === "todo";
 
   const body = (
-    <div ref={row} className="flex min-h-14 items-center gap-1 bg-surface pr-2 pl-1">
+    <div ref={row} className="flex min-h-12 items-center gap-1 bg-surface pr-2 pl-1">
       {sortable && !readOnly ? <DragHandle label={`Reorder ${action.title}`} handleProps={sortable.handleProps} /> : <span className="w-2" />}
       <button
         type="button"
@@ -67,7 +67,7 @@ export function ActionRow({
           ) : null}
         </span>
       </button>
-      <button type="button" onClick={() => onOpen(action)} className="min-w-0 flex-1 py-2 text-left">
+      <button type="button" onClick={() => onOpen(action)} className="min-w-0 flex-1 py-1.5 text-left">
         <span className={`block truncate ${open ? "" : "text-text-muted line-through"}`}>{action.title}</span>
         <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-caption text-text-muted">
           <PomodoroDots completed={completed} total={action.estimate_pomodoros} className="text-accent" />

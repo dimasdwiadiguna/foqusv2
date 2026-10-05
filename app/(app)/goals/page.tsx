@@ -83,7 +83,7 @@ function GoalsForSeason({ season, current, onSeason }: { season: string; current
       {resume && setup ? (
         <Link
           href={`/goal-setup?goal=${encodeURIComponent(setup.goalId)}&season=${setup.seasonId}&step=${setup.step}`}
-          className="mb-4 block rounded-card border border-accent/60 bg-surface p-4"
+          className="mb-3 block rounded-card border border-accent/60 bg-surface px-3 py-2"
         >
           <span className="block text-caption text-accent">Continue setting up</span>
           <span className="block text-heading">{resume.goal.title}</span>
@@ -94,7 +94,7 @@ function GoalsForSeason({ season, current, onSeason }: { season: string; current
       ) : null}
 
       {active.length === 0 ? (
-        <section className="rounded-card border border-border bg-surface px-4 py-8 text-center">
+        <section className="rounded-card border border-border bg-surface px-4 py-5 text-center">
           <div aria-hidden="true" className="mx-auto mb-3 flex size-14 items-center justify-center rounded-full border-2 border-accent">
             <span className="size-5 rounded-full border-2 border-accent" />
           </div>
@@ -147,7 +147,7 @@ function GoalsForSeason({ season, current, onSeason }: { season: string; current
       )}
 
       {closed.length > 0 ? (
-        <details className="mt-6">
+        <details className="mt-4">
           <summary className="flex min-h-11 cursor-pointer items-center text-caption uppercase tracking-wide text-text-muted">
             Closed ({closed.length})
           </summary>
