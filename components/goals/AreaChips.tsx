@@ -8,7 +8,7 @@ export function AreaChips() {
   const areas = useAreas() ?? [];
   const counts = useOpenCountsByArea();
   return (
-    <section aria-labelledby="areas-heading" className="mt-8">
+    <section aria-labelledby="areas-heading" className="mt-5">
       <h2 id="areas-heading" className="mb-2 text-caption uppercase tracking-wide text-text-muted">
         Areas
       </h2>

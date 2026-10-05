@@ -37,20 +37,20 @@ export function BottomNav() {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 aria-label={center && running ? `Focus, ${running} left` : badge ? `${label}, ${badge} unresolved` : undefined}
-                className={`relative flex min-h-14 w-full flex-col items-center justify-center gap-0.5 pt-1.5 pb-1 text-caption ${
+                className={`relative flex min-h-12 w-full flex-col items-center justify-center gap-0.5 pt-1 pb-0.5 text-[11px] font-medium ${
                   active ? "text-accent" : "text-text-muted"
                 }`}
               >
                 {center ? (
                   <span
-                    className={`-mt-5 flex size-12 items-center justify-center rounded-full border-4 border-bg shadow-lg ${
+                    className={`-mt-4 flex size-11 items-center justify-center rounded-full border-4 border-bg shadow-lg ${
                       running ? "animate-pulse bg-accent text-bg" : active ? "bg-accent text-bg" : "bg-surface-raised text-text"
                     }`}
                   >
-                    {running ? <span className="text-[12px] font-semibold tabular-nums">{running}</span> : <Icon className="size-6" />}
+                    {running ? <span className="text-[12px] font-semibold tabular-nums">{running}</span> : <Icon className="size-5" />}
                   </span>
                 ) : (
-                  <Icon className="size-6" />
+                  <Icon className="size-5" />
                 )}
                 <span>{label}</span>
                 {badge ? (

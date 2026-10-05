@@ -10,9 +10,9 @@ Spec and plan: `BRIEF.md` (the brief's own instructions call it `FOQUS-BUILD-BRI
 | 1.2 Areas, goals, and actions | Done |
 | 1.3 Time blocking | Done |
 | 1.4 Focus and the resolver | Done |
-| 1.5 Install, offline shell, and backup | Done; waiting for the owner to check on the iPhone |
-| 2.1 Daily loop | Next, after the Stage 1 exit conversation |
-| 2.2 Planning help | Not started |
+| 1.5 Install, offline shell, and backup | Done |
+| 2.1 Daily loop | Done; waiting for the owner to check on the iPhone |
+| 2.2 Planning help | Next |
 | 2.3 Reviews and coach | Not started |
 | 2.4 Completion | Not started |
 | 3.1 Schema and login | Not started |
@@ -74,6 +74,17 @@ Spec and plan: `BRIEF.md` (the brief's own instructions call it `FOQUS-BUILD-BRI
 - iPhone pass: every form control is at 16 px (two quick add chips were 13 px and are fixed); safe areas, dynamic viewport height, and overscroll were already in place.
 - Checked in Chromium at iPhone size: offline reload and every screen by tab and by direct load, the goal wizard, quick add, scheduling, a focus session, and confetti all work with the network off; export then import into a fresh profile matches the row counts of all 20 tables; an invalid file is rejected and changes nothing; a rebuild shows "Reload to update" and switches to the new version.
 
+### Step 2.1 · Daily loop — what exists
+
+- **Daily check-in** at `/checkin` (full screen; `?date=` for yesterday or an edit): Resolve (the day's unresolved blocks, one resolver card at a time; only when there are some) → Rate (energy and focus, two rows of five dots, one tap each) → Note (optional, 500 characters) → Tomorrow (read-only: tomorrow's blocks and personal blocks, with the pomodoros planned) → Close (the streak rolls up, pomodoros done of planned, one coach line). Ratings and the note save as you go, so "Save and exit" keeps them. One row per date (`daily_checkins`, id = date).
+- **On Today**: the check-in is a quiet row above the timeline until the day's last block ends (or 18:00 on a day with no blocks), then a prominent "Time to check in" card. Due prompt cards (unresolved blocks, yesterday's open check-in, today's prominent check-in) stick with the header under the Next card, at most two, the rest behind "1 more". Yesterday's card only appears when yesterday had planned blocks or a started check-in.
+- **Editing**: a check-in can be changed until the end of the next day in the settings time zone; the repo refuses later edits. Re-editing keeps the first completion time and does not move the streak.
+- **Check-in history**: Settings → Reflection → Check-ins (both streaks, then each day's energy, focus, and note, with Edit or Finish while still open).
+- **`lib/streaks`**: check-in streak (days with a completed check-in) and focus streak (days with at least one completed pomodoro on a goal action, on the local day the block started). A streak is the run ending today, or ending yesterday while today is still open. Tests cover a gap day and the time-zone midnight boundary. `lib/checkin`: when the check-in is due, the edit window, the day's numbers, "Day won", the coach line; tested.
+- **Streaks in the Today header**: ✓ check-in days and 🔥 focus days (colored once today counts); a number that went up since last shown rolls up; tapping opens the history.
+- **Celebrations**: "Day won" (the Next card becomes a green banner when every planned block today is done, with confetti the first time that day); the streak roll-up on the check-in's last screen and in the header; streak milestones at 7, 30, and 100 days and the goal-achieved moment as full-screen moments (goal: metric, actions done, pomodoros, focus hours, follow-through). A tap anywhere dismisses a moment; it leaves by itself after 6 seconds. With reduce motion on, every celebration is a 300 ms fade and there is no confetti.
+- Checked in Chromium at iPhone size with a fake clock: the card is quiet at 06:00 and prominent once the block ended; the whole flow including inline resolving; Day won with confetti once (not again on reload); streaks 1/1; history and Edit; edits allowed at 23:50 the next day and refused at 00:01 after; yesterday's card; the 7-day milestone; the goal moment dismissed by tap and by time; reduce motion (fade, no confetti). No console errors; the Stage 1 suites still pass.
+
 ## Decisions
 
 Choices made where the brief was silent.
@@ -130,10 +141,16 @@ Choices made where the brief was silent.
 - **Backup format** `foqus-backup` version 1: every row of every table, soft-deleted rows included, without the local `_dirty` flag. Imported rows are stamped as fresh changes (`updated_at` now, `_dirty` 1) so a Stage 3 first sync uploads the replacement.
 - **Ending a session with the action done but 0 pomodoros** marks its block done (with 0) instead of returning it to scheduled, so no orphan block for a finished action waits in the resolver.
 - **Schedule sheet with no free time left today** suggests the next 5-minute mark after now, never a time that has passed.
+- **Prompt cards stick with the Today header.** Today opens scrolled to now, so cards above the timeline were out of sight; the due ones sit under the Next card instead. The scroll area turns off scroll anchoring (`overflow-anchor: none`, as iOS Safari already behaves) so a growing header never pushes the now line under it.
+- **Focus streak counts blocks**, not sessions: a block's completed pomodoros include ones entered in the resolver, and every session has a block. It counts once the session ends.
+- **"Day won"** ignores drafts and missed blocks that were rescheduled (their successor counts); a dropped block means the day is not won.
+- **Moments are tapped away**, not timed out within 2 s: any tap dismisses them at once, so input is never held up (§5.19); they also leave after 6 s.
+- **The coach line on Close** is rule-based (low energy, no blocks, low focus, all done, most done, less done) until the coach arrives in Step 2.3.
 - **Lint-enforced layering.** `app/` and `components/` may not import `db/` or Dexie. `lib/` may not import db, repo, data, or React.
 
 ## Deviations
 
+- **Compact type scale** (owner's request at the Stage 1 exit): §6.3's Title 24, Heading 18, Body 16 became 20, 16, 15; inputs stay 16 px. The timeline scale is 1.2 px per minute.
 - **Compact sticky screen header** (owner's request after Step 1.4): every tabbed screen uses one `ScreenHeader` that sticks to the top while scrolling, so "+" and the other actions are always one tap away. It is a single 52 px row (plus the safe-area inset) with the title at 20/700 instead of §6.3's 24/700 Title style, and a one-line subtitle. Long titles wrap to two lines. Plan's arrows and week sit in the header; the goal page's back, title, and ⋯ do too, with area, dates, and Achieve just below. The Plan week strip is two lines (day and date, then the count) instead of three.
 
 ### Refinement after Step 1.4 — compact sticky header
@@ -141,10 +158,24 @@ Choices made where the brief was silent.
 - `ScreenHeader` is sticky, opaque, and carries the top safe-area inset; the scroll area no longer pads the top. The timeline's scroll-to-now and drag auto-scroll allow for the header covering the top.
 - Measured at iPhone size: 57 px before the safe-area inset (was about 88 px for Today and 166 px for Plan with its week strip), and "+" stays visible and opens quick add after scrolling.
 
+### Stage 1 exit — owner feedback and changes
+
+The owner used the app for several days. Feedback: overall it feels nice; four changes, all done:
+
+1. **Sheets jumped when the keyboard closed**, so a tap meant for one control landed on another. Now tapping a button inside a sheet while typing (chips, steppers, toggles) keeps the keyboard up, so the sheet does not move; and whenever a sheet does move with the keyboard, taps inside it are ignored for 350 ms.
+2. **Today's Next card is sticky** under the header, as one compact row (time, dots, title, goal or area, Start). **Plan's week strip is sticky** under its header.
+3. **More compact UI**: the type scale is one step smaller (title 20, heading 16, body 15; form fields stay at 16 px so iOS never zooms), tighter rows, cards, settings groups, and bottom navigation, and the timeline at 1.2 px per minute (a pomodoro is 36 px), so about 5½ hours fit on screen instead of 4. Settings → Schedule shows one line per day. Touch targets stay at 44 pt.
+
 ## Owner tasks
 
 - Stage 1 owner checks (Step 1.5):
   - Add the app to the home screen from Safari (Share → Add to Home Screen) **before** entering real data. Storage for the installed app is separate from Safari's, so anything entered in a Safari tab will not appear there.
   - Open the installed app once online, then open it in airplane mode.
   - Settings → Data → Export backup, and confirm the file saves (choose "Save to Files").
-- Stage 1 exit: use the app for real for a few days, then tell Claude what feels wrong before Stage 2 starts.
+- Stage 1 exit: done (feedback applied).
+- Step 2.1 checks on the iPhone:
+  - **Export a backup first** (Settings → Data → Export backup): data still lives only on this device.
+  - After the day's last block, Today shows "Time to check in"; go through it. The streak rolls up and the ✓ number in the header goes up.
+  - Finish every block one day and see the "Day won" banner.
+  - Settings → Reflection → Check-ins: yesterday's entry has Edit until midnight tonight.
+  - With Settings → Accessibility → Motion → Reduce Motion on, celebrations are a short fade.

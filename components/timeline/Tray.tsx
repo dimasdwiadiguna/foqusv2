@@ -86,7 +86,7 @@ export function Tray({
   if (!items) return null;
 
   return (
-    <div className="sticky -bottom-6 z-30 -mx-4 mt-4">
+    <div className="sticky -bottom-6 z-30 -mx-4 mt-3">
       {/* Hidden rather than unmounted when closed: a drag that starts here closes the tray but must keep running. */}
       <div
         id="tray-panel"
@@ -122,7 +122,7 @@ export function Tray({
         aria-expanded={open}
         aria-controls="tray-panel"
         onClick={() => onOpenChange(!open)}
-        className="flex min-h-12 w-full items-center justify-between border-t border-border bg-surface px-4 text-left"
+        className="flex min-h-11 w-full items-center justify-between border-t border-border bg-surface px-4 text-left"
       >
         <span>
           Unscheduled this week{" "}

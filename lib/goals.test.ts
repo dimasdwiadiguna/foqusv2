@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  achievementNumbers,
   defaultPlanDates,
   goalProgress,
   goalStats,
@@ -122,5 +123,27 @@ describe("nextRank", () => {
   it("goes after every active goal", () => {
     expect(nextRank([])).toBe(1);
     expect(nextRank([1, 3, 2])).toBe(4);
+  });
+});
+
+describe("achievementNumbers", () => {
+  it("lists the metric, actions, pomodoros, hours, and follow-through", () => {
+    const n = achievementNumbers(
+      { metric_label: "clients", metric_target: 20, metric_current: 21 },
+      [{ status: "done" }, { status: "done" }, { status: "todo" }, { status: "dropped" }],
+      { pomodoros: 34, hours: 14.2, followThrough: 0.814 },
+    );
+    expect(n).toEqual([
+      { label: "clients", value: "21 / 20" },
+      { label: "Actions done", value: "2 of 3" },
+      { label: "Pomodoros", value: "34" },
+      { label: "Focus hours", value: "14.2" },
+      { label: "Follow-through", value: "81%" },
+    ]);
+  });
+
+  it("leaves out what does not exist", () => {
+    const n = achievementNumbers({ metric_label: null, metric_target: null, metric_current: null }, [], { pomodoros: 0, hours: 0, followThrough: null });
+    expect(n.map((x) => x.label)).toEqual(["Actions done", "Pomodoros", "Focus hours"]);
   });
 });

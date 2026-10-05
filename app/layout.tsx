@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ServiceWorker } from "@/components/shell/ServiceWorker";
+import { MomentLayer } from "@/components/celebration/Moments";
 
 /** iPhone portrait screens (CSS points and pixel ratio) with a splash image in public/splash. */
 const SPLASH: [number, number, number][] = [
@@ -53,6 +54,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en" className="dark">
       <body className="bg-bg text-text antialiased">
         {children}
+        <MomentLayer />
         <ServiceWorker />
       </body>
     </html>

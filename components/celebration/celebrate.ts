@@ -1,12 +1,13 @@
 "use client";
 
 /**
- * The shared celebration helper (§5.19). Confetti on action done and on goal achieved. With
- * reduce-motion on, a short fade instead. Never blocks input: the canvas ignores pointers.
+ * The shared celebration helper (§5.19): confetti for an action done, a won day, and the full-screen
+ * moments (goal achieved, streak milestones). With reduce-motion on, a short fade instead. Never
+ * blocks input: the canvas ignores pointers.
  */
 const COLORS = ["#FFB020", "#3DDC97", "#5B8DEF", "#B07CFF", "#FF7AA2", "#4DD0E1"];
 
-export type CelebrationKind = "action" | "goal";
+export type CelebrationKind = "action" | "day" | "moment";
 
 export function prefersReducedMotion(): boolean {
   return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -15,7 +16,7 @@ export function prefersReducedMotion(): boolean {
 export async function celebrate(kind: CelebrationKind, origin?: Element | null): Promise<void> {
   if (typeof window === "undefined") return;
   if (prefersReducedMotion()) {
-    fade(kind === "goal" ? 0.35 : 0.18);
+    fade(kind === "action" ? 0.18 : 0.35);
     return;
   }
   const { default: confetti } = await import("canvas-confetti");
@@ -27,7 +28,12 @@ export async function celebrate(kind: CelebrationKind, origin?: Element | null):
     await confetti({ ...base, particleCount: 50, spread: 65, startVelocity: 28, ticks: 120, scalar: 0.8, origin: { x, y } });
     return;
   }
-  // Goal achieved: a full-screen burst from both sides, about 1.2 s.
+  if (kind === "day") {
+    // Day won: a shower from the top of the screen.
+    await confetti({ ...base, particleCount: 90, spread: 120, startVelocity: 35, gravity: 0.9, ticks: 160, origin: { x: 0.5, y: 0.1 } });
+    return;
+  }
+  // A full-screen moment: a burst from both sides, about 1.2 s.
   const end = Date.now() + 1200;
   const frame = () => {
     confetti({ ...base, particleCount: 6, angle: 60, spread: 70, origin: { x: 0, y: 0.7 } });

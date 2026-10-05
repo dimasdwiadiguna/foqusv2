@@ -97,3 +97,18 @@ export function useUnresolvedBlocks() {
   const minute = Math.floor(now / 30_000);
   return useLiveQuery(() => q.getUnresolvedBlocks(Date.now()), [minute]);
 }
+
+// ---------------------------------------------------------------------------
+// Step 2.1
+
+/** The check-in for `date`: the row, null when there is none yet, undefined while loading. */
+export const useCheckin = (date: string | undefined) =>
+  useLiveQuery(async () => (date ? ((await q.getRow("daily_checkins", date)) ?? null) : undefined), [date]);
+export const useCheckins = () => useLiveQuery(q.getCheckins, []);
+/** Check-in and focus streaks as of today, undefined while loading. */
+export function useStreaks() {
+  const settings = useSettings();
+  const today = useToday();
+  const tz = settings?.timezone;
+  return useLiveQuery(async () => (today && tz ? q.getStreaks(today, tz) : undefined), [today, tz]);
+}

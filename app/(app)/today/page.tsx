@@ -7,7 +7,8 @@ import { addDays, formatDayHeader, formatSeasonWeek } from "@/lib/time";
 import { QuickAddButton } from "@/components/actions/QuickAddButton";
 import { ScreenSkeleton } from "@/components/shell/AppShell";
 import { NextCard } from "@/components/timeline/NextCard";
-import { UnresolvedCard } from "@/components/resolver/UnresolvedCard";
+import { PromptCards } from "@/components/checkin/PromptCards";
+import { StreakBadges } from "@/components/checkin/StreakBadges";
 import { TimelineBoard } from "@/components/timeline/TimelineBoard";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 
@@ -20,9 +21,16 @@ export default function TodayPage() {
 
   return (
     <>
-      <ScreenHeader actions={<QuickAddButton preset={{ thisWeek: true }} />} title={formatDayHeader(today)} subtitle={formatSeasonWeek(today)} />
-      <UnresolvedCard />
-      <NextCard date={today} onOpenTray={() => setTrayOpen(true)} />
+      <ScreenHeader actions={
+          <>
+            <StreakBadges />
+            <QuickAddButton preset={{ thisWeek: true }} />
+          </>
+        } title={formatDayHeader(today)} subtitle={formatSeasonWeek(today)}>
+        <NextCard date={today} onOpenTray={() => setTrayOpen(true)} />
+        <PromptCards date={today} />
+      </ScreenHeader>
+      <PromptCards date={today} quiet />
       <TimelineBoard
         date={today}
         weekStart={weekStart}

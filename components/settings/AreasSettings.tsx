@@ -33,7 +33,7 @@ export function AreasSettings() {
         {live.map((a) => (
           <SortableItem key={a.id} id={a.id} className="border-b border-border last:border-b-0">
             {(s) => (
-              <div className="flex min-h-14 items-center gap-1 pr-2 pl-1">
+              <div className="flex min-h-12 items-center gap-1 pr-2 pl-1">
                 <DragHandle label={`Reorder ${a.name}`} handleProps={s.handleProps} />
                 <button
                   type="button"

@@ -77,7 +77,7 @@ function ResolverScreen({ blocks, settings, onLater }: { blocks: Block[]; settin
 
 type Step = "choose" | "done-count" | "done-action" | "reschedule" | "drop";
 
-function BlockCard({ block, settings, onResolved }: { block: Block; settings: Settings; onResolved: () => void }) {
+export function BlockCard({ block, settings, onResolved }: { block: Block; settings: Settings; onResolved: () => void }) {
   const action = useRow("actions", block.action_id);
   const goal = useRow("goals", action?.goal_id ?? "");
   const area = useRow("areas", action?.area_id ?? "");

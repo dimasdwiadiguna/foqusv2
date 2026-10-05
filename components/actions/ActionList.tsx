@@ -49,11 +49,11 @@ export function ActionList({
       <SortableList ids={open.map((a) => a.id)} onReorder={(ids) => void reorderActions(ids)} disabled={readOnly}>
         {open.map((a) =>
           readOnly ? (
-            <li key={a.id} className="mb-2">
+            <li key={a.id} className="mb-1.5">
               {row(a)}
             </li>
           ) : (
-            <SortableItem key={a.id} id={a.id} className="mb-2">
+            <SortableItem key={a.id} id={a.id} className="mb-1.5">
               {(s) => row(a, s)}
             </SortableItem>
           ),
@@ -66,7 +66,7 @@ export function ActionList({
           </summary>
           <ul>
             {closed.map((a) => (
-              <li key={a.id} className="mb-2">
+              <li key={a.id} className="mb-1.5">
                 {row(a)}
               </li>
             ))}

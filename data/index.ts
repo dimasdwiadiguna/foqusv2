@@ -24,6 +24,9 @@ export {
   useWindows,
   useActiveSession,
   useUnresolvedBlocks,
+  useCheckin,
+  useCheckins,
+  useStreaks,
 } from "./hooks";
 export { useDbReady, type DbState } from "./ready";
 export {
@@ -35,6 +38,7 @@ export {
   getWeekContext,
   getBackup,
   getRowCounts,
+  getStreaks,
   type GoalWithPlan,
   type TitledBlock,
 } from "./queries";

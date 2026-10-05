@@ -16,7 +16,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="mx-auto flex h-dvh max-w-[480px] flex-col bg-bg min-[481px]:border-x min-[481px]:border-border">
-      <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-6">
+      <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-6 [overflow-anchor:none]">
         {db.status === "ready" ? (
           <QuickAddProvider>
             <PlacementProvider>

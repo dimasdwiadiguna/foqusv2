@@ -24,7 +24,7 @@ export function WeekStrip({ date, today, onSelect }: { date: string; today: stri
   const cap = settings?.daily_pomodoro_cap ?? Infinity;
 
   return (
-    <div role="tablist" aria-label="Days of the week" className="mb-3 grid grid-cols-7 gap-1">
+    <div role="tablist" aria-label="Days of the week" className="grid grid-cols-7 gap-1">
       {days.map((d, i) => {
         const n = load.get(d) ?? 0;
         const over = n > cap;
@@ -37,7 +37,7 @@ export function WeekStrip({ date, today, onSelect }: { date: string; today: stri
             aria-selected={selected}
             aria-label={`${formatDayHeader(d)}, ${n} pomodoros${over ? `, over your cap of ${cap}` : ""}`}
             onClick={() => onSelect(d)}
-            className={`flex min-h-12 flex-col items-center justify-center rounded-block border-b-2 ${
+            className={`flex min-h-11 flex-col items-center justify-center rounded-block border-b-2 ${
               selected ? "border-accent bg-surface-raised" : "border-transparent"
             }`}
           >
