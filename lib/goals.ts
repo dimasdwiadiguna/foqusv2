@@ -142,3 +142,21 @@ function mergeSpans(spans: PlanSpan[]): [DateString, DateString][] {
   }
   return out;
 }
+
+/** The numbers on the goal-achieved moment (§5.19). */
+export function achievementNumbers(
+  plan: Pick<SeasonPlan, "metric_label" | "metric_target" | "metric_current">,
+  actions: readonly Pick<Action, "status">[],
+  stats: GoalStats,
+): { label: string; value: string }[] {
+  const out: { label: string; value: string }[] = [];
+  if (plan.metric_target !== null) {
+    out.push({ label: plan.metric_label?.trim() || "Metric", value: `${plan.metric_current ?? 0} / ${plan.metric_target}` });
+  }
+  const live = actions.filter((a) => a.status !== "dropped");
+  out.push({ label: "Actions done", value: `${live.filter((a) => a.status === "done").length} of ${live.length}` });
+  out.push({ label: "Pomodoros", value: String(stats.pomodoros) });
+  out.push({ label: "Focus hours", value: String(stats.hours) });
+  if (stats.followThrough !== null) out.push({ label: "Follow-through", value: `${Math.round(stats.followThrough * 100)}%` });
+  return out;
+}

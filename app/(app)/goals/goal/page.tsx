@@ -16,13 +16,13 @@ import {
   useToday,
 } from "@/data";
 import { goalColor } from "@/lib/areas";
-import { goalProgress, goalStats, MAX_MAJOR_MOVES } from "@/lib/goals";
+import { achievementNumbers, goalProgress, goalStats, MAX_MAJOR_MOVES } from "@/lib/goals";
 import { formatDateRange, formatSeason, seasonOfDate } from "@/lib/time";
 import { achieveGoal, addMajorMove, deleteGoal, deleteMajorMove, dropGoal, setMajorMoveDone, updateMetricCurrent } from "@/repo";
 import type { Action, Goal, MajorMove, SeasonPlan } from "@/types";
 import { ActionList } from "@/components/actions/ActionList";
 import { useQuickAdd } from "@/components/actions/QuickAdd";
-import { celebrate } from "@/components/celebration/celebrate";
+import { showMoment } from "@/components/celebration/Moments";
 import { ScreenSkeleton } from "@/components/shell/AppShell";
 import { MoreIcon } from "@/components/shell/icons";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
@@ -241,7 +241,7 @@ function GoalBody({ goal, plan, readOnly }: { goal: Goal; plan: SeasonPlan; read
         onConfirm={async () => {
           setConfirm(null);
           await achieveGoal(goal.id);
-          void celebrate("goal");
+          showMoment({ eyebrow: "Goal achieved", headline: goal.title, numbers: achievementNumbers(plan, actions, stats), line: "You set it, planned it, and did it." });
         }}
       />
       <DropSheet

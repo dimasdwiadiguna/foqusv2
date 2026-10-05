@@ -9,6 +9,7 @@ import type {
   Area,
   AvailabilityWindow,
   Block,
+  DailyCheckin,
   FocusSession,
   Goal,
   MajorMove,
@@ -25,6 +26,7 @@ import { availabilityId, peakId } from "@/lib/ids";
 import { addDays, dayBounds, endOfWeek, weekdayOf } from "@/lib/time";
 import { completedByAction } from "@/lib/actions";
 import { BACKUP_TABLES, buildBackup, type Backup } from "@/lib/backup";
+import { checkinDays, focusDays, streakFrom, type Streak } from "@/lib/streaks";
 
 export async function getRow<N extends TableName>(table: N, id: string): Promise<Tables[N] | undefined> {
   const row = await getDb().t(table).get(id);
@@ -245,4 +247,23 @@ export async function getRowCounts(): Promise<Record<string, number>> {
   const out: Record<string, number> = {};
   for (const t of BACKUP_TABLES) out[t] = await getDb().t(t).count();
   return out;
+}
+
+// ---------------------------------------------------------------------------
+// Step 2.1: check-ins and streaks
+
+
+/** Live check-ins, newest first. */
+export async function getCheckins(): Promise<DailyCheckin[]> {
+  return (await getAllRows("daily_checkins")).sort((a, b) => b.date.localeCompare(a.date));
+}
+
+/** Both streaks (§5.19) as of `today` in the settings time zone. */
+export async function getStreaks(today: string, timeZone: string): Promise<{ checkin: Streak; focus: Streak }> {
+  const goalActions = new Set((await getAllRows("actions")).filter((a) => a.goal_id).map((a) => a.id));
+  const blocks = await getAllRows("blocks");
+  return {
+    checkin: streakFrom(checkinDays(await getAllRows("daily_checkins")), today),
+    focus: streakFrom(focusDays(blocks, goalActions, timeZone), today),
+  };
 }

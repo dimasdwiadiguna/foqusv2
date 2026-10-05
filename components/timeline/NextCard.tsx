@@ -1,7 +1,10 @@
 "use client";
 
 import { useAreas, useBlocksForDays, useNow, useRows, useSettings } from "@/data";
+import { useEffect } from "react";
+import { dayNumbers, isDayWon, type DayNumbers } from "@/lib/checkin";
 import { toLocalTime } from "@/lib/time";
+import { celebrate } from "@/components/celebration/celebrate";
 import { PomodoroDots } from "@/components/ui/PomodoroDots";
 import { Button } from "@/components/ui/Button";
 import { usePlacement } from "./PlacementProvider";
@@ -23,6 +26,7 @@ export function NextCard({ date, onOpenTray }: { date: string; onOpenTray: () =>
   if (!settings || !blocks) return <div className="h-14 animate-pulse rounded-card bg-surface" />;
 
   const next = blocks.find((b) => (b.status === "scheduled" || b.status === "active") && Date.parse(b.ends_at) > now);
+  if (!next && isDayWon(blocks)) return <DayWon date={date} numbers={dayNumbers(blocks)} />;
   if (!next) {
     return (
       <section aria-label="Next" className="flex items-center gap-2 rounded-card border border-border bg-surface py-1 pr-1 pl-3">
@@ -52,6 +56,37 @@ export function NextCard({ date, onOpenTray }: { date: string; onOpenTray: () =>
         {next.status === "active" ? "Resume" : "Start"}
       </Button>
       {focus.dialog}
+    </section>
+  );
+}
+
+/**
+ * "Day won" (§5.19): every block today is done. Confetti once per day on this device, the first
+ * time the banner shows.
+ */
+function DayWon({ date, numbers }: { date: string; numbers: DayNumbers }) {
+  useEffect(() => {
+    const key = `foqus:day-won:${date}`;
+    try {
+      if (localStorage.getItem(key)) return;
+      localStorage.setItem(key, "1");
+    } catch {
+      // Without storage the confetti would repeat on every visit, so skip it.
+      return;
+    }
+    void celebrate("day");
+  }, [date]);
+  return (
+    <section aria-label="Day won" className="animate-moment flex items-center gap-3 rounded-card border border-success/60 bg-surface px-3 py-2">
+      <span aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-full bg-success text-lg font-bold text-bg">
+        ✓
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-heading text-success">Day won</p>
+        <p className="text-caption text-text-muted">
+          Every block done · {numbers.done} {numbers.done === 1 ? "pomodoro" : "pomodoros"}
+        </p>
+      </div>
     </section>
   );
 }

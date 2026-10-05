@@ -92,3 +92,20 @@ export function ChevronDownIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function FlameIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M12 22c4 0 7-2.7 7-6.6 0-3.1-1.9-5.2-3.6-7.1-.5 1.6-1.4 2.6-2.4 3C13.5 7.8 12 4.6 9.5 2c.2 3.3-1.6 5.4-3.2 7.3C5 10.9 5 12.5 5 15.4 5 19.3 8 22 12 22z" />
+    </svg>
+  );
+}
+
+export function CheckCircleIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8 12.5l2.7 2.7L16 9.8" />
+    </svg>
+  );
+}

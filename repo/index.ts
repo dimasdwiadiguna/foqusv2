@@ -46,3 +46,4 @@ export {
 } from "./focus";
 export { resolveDone, rescheduleTo, rescheduleToTray, resolveDrop } from "./resolver";
 export { importBackup } from "./backup";
+export { saveCheckin, completeCheckin, type CheckinInput } from "./checkins";
