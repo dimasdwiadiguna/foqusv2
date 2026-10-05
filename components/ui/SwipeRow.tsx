@@ -5,19 +5,24 @@ import { useRef, useState } from "react";
 const THRESHOLD = 88;
 
 /**
- * Swipe right to trigger `onSwipeRight` (§6.8, mark done). Vertical scrolling stays native
- * (`touch-action: pan-y`), and a drag in progress cancels the swipe.
+ * Swipe right for `onSwipeRight` (mark done) and left for `onSwipeLeft` (schedule) (§6.8).
+ * Vertical scrolling stays native (`touch-action: pan-y`), and a drag in progress cancels the swipe.
  */
 export function SwipeRow({
   onSwipeRight,
+  onSwipeLeft,
   label,
+  leftLabel = "Schedule",
   disabled = false,
   cancel = false,
   children,
 }: {
   onSwipeRight: () => void;
-  /** What the revealed area says, e.g. "Done". */
+  onSwipeLeft?: () => void;
+  /** What the area revealed by a right swipe says, e.g. "Done". */
   label: string;
+  /** What the area revealed by a left swipe says. */
+  leftLabel?: string;
   disabled?: boolean;
   /** True while something else (a reorder drag) owns the gesture. */
   cancel?: boolean;
@@ -36,16 +41,23 @@ export function SwipeRow({
 
   return (
     <div className="relative overflow-hidden rounded-card">
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 flex items-center gap-2 bg-success pl-4 font-semibold text-bg"
-        style={{ opacity: Math.min(offset / THRESHOLD, 1) }}
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M5 12l5 5L20 7" />
-        </svg>
-        {label}
-      </div>
+      {offset > 0 ? (
+        <div aria-hidden="true" className="absolute inset-0 flex items-center gap-2 bg-success pl-4 font-semibold text-bg" style={{ opacity: Math.min(offset / THRESHOLD, 1) }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 12l5 5L20 7" />
+          </svg>
+          {label}
+        </div>
+      ) : null}
+      {offset < 0 ? (
+        <div aria-hidden="true" className="absolute inset-0 flex items-center justify-end gap-2 bg-accent pr-4 font-semibold text-bg" style={{ opacity: Math.min(-offset / THRESHOLD, 1) }}>
+          {leftLabel}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="5" width="18" height="16" rx="2" />
+            <path d="M3 10h18M8 3v4M16 3v4" />
+          </svg>
+        </div>
+      ) : null}
       <div
         className="relative touch-pan-y"
         style={{ transform: offset ? `translateX(${offset}px)` : undefined, transition: offset ? "none" : "transform 150ms" }}
@@ -60,15 +72,15 @@ export function SwipeRow({
           const my = e.clientY - s.y;
           if (!horizontal.current) {
             if (Math.abs(my) > 10 && Math.abs(my) > Math.abs(mx)) return reset();
-            if (mx > 10 && mx > Math.abs(my)) horizontal.current = true;
+            if (Math.abs(mx) > 10 && Math.abs(mx) > Math.abs(my) && (mx > 0 || onSwipeLeft)) horizontal.current = true;
             else return;
           }
-          setDx(Math.max(0, mx));
+          setDx(onSwipeLeft ? mx : Math.max(0, mx));
         }}
         onPointerUp={() => {
-          const fire = horizontal.current && !cancel && dx >= THRESHOLD;
+          const fire = horizontal.current && !cancel ? (dx >= THRESHOLD ? onSwipeRight : dx <= -THRESHOLD ? onSwipeLeft : undefined) : undefined;
           reset();
-          if (fire) onSwipeRight();
+          fire?.();
         }}
         onPointerCancel={reset}
         onClickCapture={(e) => {

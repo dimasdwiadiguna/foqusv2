@@ -8,6 +8,7 @@ import { celebrate } from "@/components/celebration/celebrate";
 import { PomodoroDots } from "@/components/ui/PomodoroDots";
 import { SwipeRow } from "@/components/ui/SwipeRow";
 import { DragHandle, type SortableRenderProps } from "@/components/ui/Sortable";
+import { usePlacement } from "@/components/timeline/PlacementProvider";
 
 /** Mark done with confetti from the row (§5.4, §5.19). */
 export async function markDone(action: Pick<Action, "id">, origin?: Element | null) {
@@ -17,7 +18,7 @@ export async function markDone(action: Pick<Action, "id">, origin?: Element | nu
 
 /**
  * One action: a check circle (tap to mark done), the title, and its dots, due date, and week tag.
- * Swipe right marks it done (§6.8). Tap opens the edit sheet.
+ * Swipe right marks it done; swipe left schedules it (§6.8). Tap opens the edit sheet.
  */
 export function ActionRow({
   action,
@@ -38,6 +39,7 @@ export function ActionRow({
   readOnly?: boolean;
 }) {
   const row = useRef<HTMLDivElement>(null);
+  const { schedule } = usePlacement();
   const done = action.status === "done";
   const dropped = action.status === "dropped";
   const open = action.status === "todo";
@@ -85,7 +87,12 @@ export function ActionRow({
 
   if (!open || readOnly) return <div className="overflow-hidden rounded-card">{body}</div>;
   return (
-    <SwipeRow label="Done" onSwipeRight={() => markDone(action, row.current)} cancel={sortable?.isDragging}>
+    <SwipeRow
+      label="Done"
+      onSwipeRight={() => markDone(action, row.current)}
+      onSwipeLeft={() => schedule(action)}
+      cancel={sortable?.isDragging}
+    >
       {body}
     </SwipeRow>
   );

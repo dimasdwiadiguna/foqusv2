@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { getAllRows, getRow, getSettings } from "./queries";
 import { startOfWeek, todayIn } from "@/lib/time";
 import * as q from "./queries";
-import type { TableName, Tables } from "@/types";
+import type { TableName, Tables, Weekday } from "@/types";
 
 /** A live row, or undefined while loading or if it does not exist. */
 export function useRow<N extends TableName>(table: N, id: string): Tables[N] | undefined {
@@ -68,3 +68,19 @@ export function useWeekStart(): string | undefined {
   const today = useToday();
   return today ? startOfWeek(today) : undefined;
 }
+
+// ---------------------------------------------------------------------------
+// Step 1.3
+
+export const useDaySchedule = (weekday: Weekday) => useLiveQuery(() => q.getDaySchedule(weekday), [weekday]);
+export const usePersonalBlocks = () => useLiveQuery(q.getPersonalBlocks, []);
+export const useBlocksForDays = (from: string | undefined, to: string | undefined, timeZone: string | undefined) =>
+  useLiveQuery(() => (from && to && timeZone ? q.getBlocksForDays(from, to, timeZone) : []), [from, to, timeZone]);
+/** This week's list: todo actions whose `planned_week` is `weekStart`. */
+export const useWeekList = (weekStart: string | undefined) =>
+  useLiveQuery(
+    async () => (weekStart ? (await q.getAllRows("actions")).filter((a) => a.planned_week === weekStart && a.status === "todo") : []),
+    [weekStart],
+  );
+export const useWindows = (kind: "availability" | "peak") =>
+  useLiveQuery(async () => (await q.getAllRows(kind === "availability" ? "availability_windows" : "peak_windows")).sort((a, b) => a.weekday - b.weekday), [kind]);

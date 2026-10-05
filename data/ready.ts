@@ -3,12 +3,20 @@
 import { useEffect, useState } from "react";
 import { getDb } from "@/db";
 import { ensureSeed } from "@/db/seed";
+import { startOfWeek, todayIn } from "@/lib/time";
+import { rolloverWeek } from "@/repo/actions";
+import { getSettings } from "./queries";
 
 let opening: Promise<void> | null = null;
 
-/** Open the database and seed it once per page load. */
+/** Open the database, seed it, and roll the week list over, once per page load. */
 function openOnce(): Promise<void> {
-  opening ??= ensureSeed(getDb(), new Date().toISOString()).then(() => undefined);
+  opening ??= (async () => {
+    const now = new Date().toISOString();
+    await ensureSeed(getDb(), now);
+    const settings = await getSettings();
+    if (settings) await rolloverWeek(startOfWeek(todayIn(now, settings.timezone)));
+  })();
   return opening;
 }
 

@@ -164,3 +164,17 @@ export async function reorderActions(orderedIds: readonly string[]): Promise<voi
     }
   });
 }
+
+/**
+ * Week rollover (§5.4): every still-todo action from an earlier week's list moves to this week's.
+ * Before Step 2.3 there is no weekly review, so this always applies. Safe to run on every open.
+ */
+export async function rolloverWeek(weekStart: string): Promise<number> {
+  return writeTx(["actions"], async () => {
+    const stale = (await getDb().t("actions").where("planned_week").below(weekStart).toArray()).filter(
+      (a) => !a.deleted_at && a.status === "todo",
+    );
+    for (const a of stale) await updateRow("actions", a.id, { planned_week: weekStart });
+    return stale.length;
+  });
+}

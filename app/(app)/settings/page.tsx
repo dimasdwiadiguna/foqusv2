@@ -5,6 +5,7 @@ import { ScreenSkeleton } from "@/components/shell/AppShell";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { FocusSettings } from "@/components/settings/FocusSettings";
 import { AreasSettings } from "@/components/settings/AreasSettings";
+import { ScheduleSettings } from "@/components/settings/ScheduleSettings";
 
 export default function SettingsPage() {
   const settings = useSettings();
@@ -13,6 +14,7 @@ export default function SettingsPage() {
   return (
     <>
       <ScreenHeader title="Settings" />
+      <ScheduleSettings />
       <FocusSettings settings={settings} />
       <AreasSettings />
     </>

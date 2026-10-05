@@ -7,9 +7,9 @@ Spec and plan: `BRIEF.md` (the brief's own instructions call it `FOQUS-BUILD-BRI
 | Step | Status |
 |---|---|
 | 1.1 Foundation | Done; owner checked |
-| 1.2 Areas, goals, and actions | Done; waiting for the owner to check on the iPhone |
-| 1.3 Time blocking | Next |
-| 1.4 Focus and the resolver | Not started |
+| 1.2 Areas, goals, and actions | Done |
+| 1.3 Time blocking | Done; waiting for the owner to check on the iPhone |
+| 1.4 Focus and the resolver | Next |
 | 1.5 Install, offline shell, and backup | Not started |
 | 2.1 Daily loop | Not started |
 | 2.2 Planning help | Not started |
@@ -44,6 +44,17 @@ Spec and plan: `BRIEF.md` (the brief's own instructions call it `FOQUS-BUILD-BRI
 - `celebrate()`: confetti for an action done and a full-screen burst for a goal achieved; with reduce-motion on, a short fade.
 - Tests: `lib/actions`, `lib/goals`, `lib/order`, `lib/areas`, `lib/goal-setup`, plus repo tests for every Step 1.2 "done when" item. Also driven end to end in Chromium at iPhone size, including CDP touch for swipe and long-press reorder.
 
+### Step 1.3 · Time blocking — what exists
+
+- Settings → Schedule: availability and peak window per weekday, each with "Copy to all days"; personal blocks (label, days, times, active).
+- `lib/intervals`, `lib/availability` (free time per day; external events are a parameter), and `lib/placement` (the hard rule, every soft warning, off-peak and after-due flags, snap to the nearest free position), all tested.
+- The timeline: hours, dimmed time outside availability, the peak strip, hatched personal blocks, goal blocks filled, area blocks outlined, done and unresolved and draft styles, off-peak tag, hatched buffer tails, the now line.
+- Today: date and season week, the Next card (or "Nothing scheduled" with a tray button), the timeline scrolled to now, the tray.
+- Plan: week arrows, the week strip with pomodoros per day and "!" over the cap, a day timeline, swipe to change day, the tray.
+- Blocks: drag from the tray, tap an empty slot ("Add block at 17:00"), long-press to move, the bottom handle to resize, 5-minute snap, auto-scroll near edges, a floating time label, red preview when it would overlap. Overlaps snap to the nearest free spot (with a toast) or change nothing; soft warnings ask "Place anyway?". The block sheet edits day, time, pomodoros, and buffer, and offers Mark done and Delete. The schedule sheet (tap a tray item, or swipe an action row left) is the tap alternative to every drag.
+- Week rollover on every app open (§5.4).
+- Checked in Chromium at iPhone size with real touch input: tray drag, snap-away, personal-block confirm, resize, off-peak without warning, tray emptying as actions get scheduled, scrolling over a block not moving it, empty-slot tap, swipe between days.
+
 ## Decisions
 
 Choices made where the brief was silent.
@@ -73,6 +84,17 @@ Choices made where the brief was silent.
 - **Season rows** are created when a goal is first planned in a season, not when the season is merely selected.
 - **Libraries.** `@dnd-kit/core` 6 + `@dnd-kit/sortable` 10 (stable; `@dnd-kit/react` is still 0.x). `canvas-confetti`, bundled, so no third-party script loads at runtime. Touch drag starts after a 300 ms hold; mouse drag after 6 px; keyboard via each row's grip.
 - **Deterministic ids** moved to `lib/ids.ts` so components can use them without importing `db/`.
+- **A block must end by midnight** of its day: the timeline is one day long, so this is a second hard check ("A block has to end by midnight.").
+- **Done blocks keep their time** for the overlap rule; missed blocks free it. Free time (§5.6) counts committed blocks only (scheduled, active, done).
+- **Buffer warning works both ways**: the new block runs into another's buffer, or its own buffer runs into the next block.
+- **Snap** tries every 5-minute start within the day, nearest first, later on a tie.
+- **"Mark done" in the block sheet** records the planned pomodoros as completed (no focus session ran). It does not mark the action done.
+- **Dropping from the tray** creates a block of min(unscheduled, max per block) pomodoros, centred on the finger. "Add block here" uses the same size.
+- **Swiping the Today timeline** opens Plan on the neighbouring day; Today itself always shows today.
+- **Repo re-checks the hard rule** and recomputes `off_peak`/`after_due` inside the write transaction, so a stale screen can never create an overlap.
+- **Week rollover runs on every app open**; it is idempotent. When weekly reviews arrive (Step 2.3) it will skip weeks whose review is complete.
+- **Personal block labels** use `text-muted`, not `text-faint`, for contrast.
+- **Timeline scale**: 1.6 px per minute (a pomodoro is 48 px, the 5-minute snap 8 px).
 - **Lint-enforced layering.** `app/` and `components/` may not import `db/` or Dexie. `lib/` may not import db, repo, data, or React.
 
 ## Deviations
@@ -81,8 +103,8 @@ Choices made where the brief was silent.
 
 ## Owner tasks
 
-- Before Step 1.3, on the iPhone:
-  - Create a goal, leave the wizard at step 2 or 3 with "Save and exit", then continue it from Goals.
-  - Press and hold a goal card, then drag to change its rank. Check that scrolling the list does not start a drag.
-  - Swipe an action row right to mark it done, and check the confetti.
-  - Quick add from Today: the keyboard should open with the sheet.
+- Before Step 1.4, on the iPhone:
+  - Set your real availability, peak window, and personal blocks in Settings → Schedule.
+  - Drag an action from the tray onto Today's timeline; long-press a block and move it; resize it by its bottom handle. Check that dragging and resizing feel smooth.
+  - Scroll the timeline with your thumb starting on a block: it should scroll, not drag.
+  - Swipe the Plan timeline left and right to change day.

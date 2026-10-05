@@ -4,7 +4,24 @@
  */
 import { getDb } from "@/db";
 import { SETTINGS_ID } from "@/db/seed";
-import type { Action, Area, Block, Goal, MajorMove, Season, SeasonPlan, Settings, TableName, Tables } from "@/types";
+import type {
+  Action,
+  Area,
+  AvailabilityWindow,
+  Block,
+  Goal,
+  MajorMove,
+  PeakWindow,
+  PersonalBlock,
+  Season,
+  SeasonPlan,
+  Settings,
+  TableName,
+  Tables,
+  Weekday,
+} from "@/types";
+import { availabilityId, peakId } from "@/lib/ids";
+import { addDays, dayBounds, weekdayOf } from "@/lib/time";
 import { completedByAction } from "@/lib/actions";
 
 export async function getRow<N extends TableName>(table: N, id: string): Promise<Tables[N] | undefined> {
@@ -123,4 +140,58 @@ export async function getMovesForGoal(goalId: string): Promise<MajorMove[]> {
   const moves: MajorMove[] = [];
   for (const p of plans) moves.push(...(await getMajorMoves(p.id)));
   return moves;
+}
+
+// ---------------------------------------------------------------------------
+// Step 1.3: schedule, blocks, placement
+
+
+export interface DaySchedule {
+  availability: AvailabilityWindow | undefined;
+  peak: PeakWindow | undefined;
+}
+
+export async function getDaySchedule(weekday: Weekday): Promise<DaySchedule> {
+  return {
+    availability: await getRow("availability_windows", availabilityId(weekday)),
+    peak: await getRow("peak_windows", peakId(weekday)),
+  };
+}
+
+export async function getPersonalBlocks(): Promise<PersonalBlock[]> {
+  return (await getAllRows("personal_blocks")).sort((a, b) => a.start_time.localeCompare(b.start_time) || a.label.localeCompare(b.label));
+}
+
+/** Live blocks starting in `[fromIso, toIso)`, by start. */
+export async function getBlocksBetween(fromIso: string, toIso: string): Promise<Block[]> {
+  const rows = await getDb().t("blocks").where("starts_at").between(fromIso, toIso, true, false).toArray();
+  return rows.filter((b) => !b.deleted_at).sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+}
+
+/** Blocks on the local dates `from`…`to` (inclusive) in the zone. */
+export function getBlocksForDays(from: string, to: string, timeZone: string): Promise<Block[]> {
+  return getBlocksBetween(dayBounds(from, timeZone).start, dayBounds(to, timeZone).end);
+}
+
+export type TitledBlock = Block & { title: string };
+
+/**
+ * Everything `lib/placement` needs for a proposal on `date`: the day's windows, personal blocks,
+ * settings, and the blocks of that day and its neighbours with their action titles.
+ */
+export async function getPlacementContext(date: string) {
+  const settings = await getSettings();
+  if (!settings) throw new Error("Settings are missing.");
+  const tz = settings.timezone;
+  const blocks = await getBlocksForDays(addDays(date, -1), addDays(date, 1), tz);
+  const titles = new Map<string, string>();
+  for (const b of blocks) {
+    if (!titles.has(b.action_id)) titles.set(b.action_id, (await getDb().t("actions").get(b.action_id))?.title ?? "");
+  }
+  return {
+    settings,
+    ...(await getDaySchedule(weekdayOf(date))),
+    personal: await getPersonalBlocks(),
+    blocks: blocks.map((b) => ({ ...b, title: titles.get(b.action_id) ?? "" })) as TitledBlock[],
+  };
 }
