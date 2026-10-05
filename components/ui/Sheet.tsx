@@ -30,6 +30,11 @@ export function Sheet({
   const [dragY, setDragY] = useState(0);
   const start = useRef<number | null>(null);
   const [bottom, setBottom] = useState(0);
+  // The latest onClose, so Escape never calls a stale one from when the sheet opened.
+  const closeRef = useRef(onClose);
+  useEffect(() => {
+    closeRef.current = onClose;
+  });
 
   // Focus management and Escape.
   useEffect(() => {
@@ -40,7 +45,7 @@ export function Sheet({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.stopPropagation();
-        onClose();
+        closeRef.current();
       } else if (e.key === "Tab" && node) {
         const items = [...node.querySelectorAll<HTMLElement>(FOCUSABLE)];
         if (items.length === 0) return;

@@ -5,6 +5,7 @@ import { toLocalTime } from "@/lib/time";
 import { PomodoroDots } from "@/components/ui/PomodoroDots";
 import { Button } from "@/components/ui/Button";
 import { usePlacement } from "./PlacementProvider";
+import { useStartFocus } from "@/components/focus/useStartFocus";
 
 /**
  * The Next card on Today (§6.7): the running or next block today. With none left, it points to
@@ -18,6 +19,7 @@ export function NextCard({ date, onOpenTray }: { date: string; onOpenTray: () =>
   const goals = useRows("goals");
   const areas = useAreas(true);
   const { openBlock } = usePlacement();
+  const focus = useStartFocus();
   if (!settings || !blocks) return <div className="mb-4 h-28 animate-pulse rounded-card bg-surface" />;
 
   const next = blocks.find((b) => (b.status === "scheduled" || b.status === "active") && Date.parse(b.ends_at) > now);
@@ -47,6 +49,16 @@ export function NextCard({ date, onOpenTray }: { date: string; onOpenTray: () =>
           <PomodoroDots completed={next.completed_pomodoros} total={next.planned_pomodoros} className="text-accent" />
         </span>
       </button>
+      <div className="px-4 pb-4">
+        <Button
+          variant="primary"
+          block
+          onClick={() => focus.start({ blockId: next.id, pomodoros: next.planned_pomodoros })}
+        >
+          {next.status === "active" ? "Back to focus" : "Start focus"}
+        </Button>
+        {focus.dialog}
+      </div>
     </section>
   );
 }

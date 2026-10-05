@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useRef, useState } from "react"
 import { getPlacementContext, useSettings } from "@/data";
 import { checkPlacement, snapToFree, type PlacementWarning } from "@/lib/placement";
 import { todayIn, toLocalDate, toLocalTime } from "@/lib/time";
-import { placeBlock, updateBlockPlacement } from "@/repo";
+import { placeBlock, rescheduleTo, updateBlockPlacement } from "@/repo";
 import type { Action, Block } from "@/types";
 import { Button } from "@/components/ui/Button";
 import { Sheet } from "@/components/ui/Sheet";
@@ -25,12 +25,17 @@ interface PlacementApi {
    * position (or gives up and leaves things as they were); soft warnings ask "Place anyway?".
    * Resolves true when the block was saved.
    */
-  place: (action: Pick<Action, "id" | "goal_id" | "due_on">, proposal: Proposal, block?: Block) => Promise<boolean>;
+  place: (action: Pick<Action, "id" | "goal_id" | "due_on">, proposal: Proposal, block?: Block, opts?: PlaceOptions) => Promise<boolean>;
   /** Tap alternative to dragging: pick a day, time, and size for an action. */
-  schedule: (action: Action, date?: string) => void;
+  schedule: (action: Action, date?: string, opts?: PlaceOptions & { pomodoros?: number }) => void;
   /** The block sheet. */
   openBlock: (block: Block) => void;
   toast: (message: string) => void;
+}
+
+export interface PlaceOptions {
+  /** Rescheduling a missed block (§5.10): the new block is its successor. */
+  replaces?: string;
 }
 
 const Ctx = createContext<PlacementApi | null>(null);
@@ -45,7 +50,7 @@ export function PlacementProvider({ children }: { children: React.ReactNode }) {
   const settings = useSettings();
   const [confirm, setConfirm] = useState<{ warnings: PlacementWarning[]; resolve: (ok: boolean) => void } | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [scheduling, setScheduling] = useState<{ action: Action; date?: string; key: number } | null>(null);
+  const [scheduling, setScheduling] = useState<{ action: Action; date?: string; opts?: PlaceOptions & { pomodoros?: number }; key: number } | null>(null);
   const [blockOpen, setBlockOpen] = useState<Block | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -56,7 +61,7 @@ export function PlacementProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const place = useCallback<PlacementApi["place"]>(
-    async (action, proposal, block) => {
+    async (action, proposal, block, opts) => {
       if (!settings) return false;
       const tz = settings.timezone;
       const date = toLocalDate(proposal.start, tz);
@@ -100,6 +105,7 @@ export function PlacementProvider({ children }: { children: React.ReactNode }) {
       try {
         const p = { start: input.start, pomodoros: input.pomodoros, bufferMinutes: input.bufferMinutes };
         if (block) await updateBlockPlacement(block.id, p);
+        else if (opts?.replaces) await rescheduleTo(opts.replaces, p);
         else await placeBlock(action.id, p);
         return true;
       } catch (e) {
@@ -113,7 +119,7 @@ export function PlacementProvider({ children }: { children: React.ReactNode }) {
   const api: PlacementApi = {
     place,
     toast,
-    schedule: (action, date) => setScheduling({ action, date, key: Date.now() }),
+    schedule: (action, date, opts) => setScheduling({ action, date, opts, key: Date.now() }),
     openBlock: setBlockOpen,
   };
 
@@ -147,7 +153,7 @@ export function PlacementProvider({ children }: { children: React.ReactNode }) {
         </ul>
       </Sheet>
       {scheduling ? (
-        <ScheduleSheet key={scheduling.key} action={scheduling.action} initialDate={scheduling.date} onClose={() => setScheduling(null)} />
+        <ScheduleSheet key={scheduling.key} action={scheduling.action} initialDate={scheduling.date} options={scheduling.opts} onClose={() => setScheduling(null)} />
       ) : null}
       <BlockSheet block={blockOpen} onClose={() => setBlockOpen(null)} />
       {/* At the top, so it never covers a sheet. */}

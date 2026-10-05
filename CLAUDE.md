@@ -21,6 +21,7 @@ FOQUS is a personal, mobile-first PWA for one owner on an iPhone. It connects qu
 - `app/(app)/<screen>/` — tabbed screens; `app/(flows)/` — full-screen flows (wizard). Detail pages use query params (`/goals/goal?id=`) so every route stays static.
 - `components/` — UI pieces. `ui/Sheet`, `ui/Sortable`, `ui/SwipeRow` are the shared interaction primitives; `actions/QuickAdd` is global (`useQuickAdd()`); `celebration/celebrate`.
 - `components/timeline/` — `DayTimeline`, `TimelineBoard` (timeline + tray), and `PlacementProvider` (`usePlacement()`: every block create/move/resize goes through `place()`, which applies §5.8: snap on overlap, confirm soft warnings). Drags use `useDragGesture` (long-press on touch).
+- `components/focus/` — `useStartFocus()` (start with the clash question), the Focus screen (`app/(flows)/focus`), `EndSheet`. The timer is always `lib/timer.timerAt(session, now)`; never store ticking state. `components/resolver/` — the missed-block resolver overlay.
 
 ## Conventions (BRIEF §3.2, §3.3)
 

@@ -11,13 +11,24 @@ import { controlClass } from "@/components/ui/Field";
 import { PomodoroDots } from "@/components/ui/PomodoroDots";
 import { Sheet } from "@/components/ui/Sheet";
 import { Stepper } from "@/components/ui/Stepper";
-import { usePlacement } from "./PlacementProvider";
+import { usePlacement, type PlaceOptions } from "./PlacementProvider";
 
 /**
  * Schedule one action (§6.8 swipe left, and the tap alternative to dragging from the tray):
  * a day, a start time on the 5-minute grid, and a size in pomodoros.
  */
-export function ScheduleSheet({ action, initialDate, onClose }: { action: Action; initialDate?: string; onClose: () => void }) {
+export function ScheduleSheet({
+  action,
+  initialDate,
+  options,
+  onClose,
+}: {
+  action: Action;
+  initialDate?: string;
+  /** `replaces`: rescheduling a missed block; `pomodoros`: the size to start from. */
+  options?: PlaceOptions & { pomodoros?: number };
+  onClose: () => void;
+}) {
   const settings = useSettings();
   const today = useToday();
   const blocks = useBlocksForActions([action.id]);
@@ -26,6 +37,7 @@ export function ScheduleSheet({ action, initialDate, onClose }: { action: Action
     <ScheduleForm
       action={action}
       settings={settings}
+      options={options}
       date0={initialDate && initialDate >= today ? initialDate : today}
       blocks={blocks}
       onClose={onClose}
@@ -36,12 +48,14 @@ export function ScheduleSheet({ action, initialDate, onClose }: { action: Action
 function ScheduleForm({
   action,
   settings,
+  options,
   date0,
   blocks,
   onClose,
 }: {
   action: Action;
   settings: Settings;
+  options?: PlaceOptions & { pomodoros?: number };
   date0: string;
   blocks: NonNullable<ReturnType<typeof useBlocksForActions>>;
   onClose: () => void;
@@ -52,7 +66,7 @@ function ScheduleForm({
   const max = settings.max_pomodoros_per_block;
   const { remaining, unscheduled } = actionNumbers(action, blocks, new Date(now).toISOString());
   const [date, setDate] = useState(date0);
-  const [pomodoros, setPomodoros] = useState(Math.min(Math.max(unscheduled, 1), max));
+  const [pomodoros, setPomodoros] = useState(Math.min(Math.max(options?.pomodoros ?? unscheduled, 1), max));
   const [time, setTime] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -81,7 +95,7 @@ function ScheduleForm({
     <Sheet
       open
       onClose={onClose}
-      title="Schedule"
+      title={options?.replaces ? "Reschedule" : "Schedule"}
       footer={
         <Button
           variant="primary"
@@ -89,7 +103,7 @@ function ScheduleForm({
           disabled={busy}
           onClick={async () => {
             setBusy(true);
-            const ok = await place(action, { start: Date.parse(zonedToInstant(date, value, tz)), pomodoros });
+            const ok = await place(action, { start: Date.parse(zonedToInstant(date, value, tz)), pomodoros }, undefined, options);
             setBusy(false);
             if (ok) onClose();
           }}

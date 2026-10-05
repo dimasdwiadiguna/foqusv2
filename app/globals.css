@@ -100,3 +100,18 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* A dot or check that just completed (§5.19). Reduced motion shortens it to nothing (above). */
+@keyframes pop {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.4;
+  }
+  60% {
+    transform: scale(1.35);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

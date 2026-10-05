@@ -69,7 +69,7 @@ export function BlockItem({
       >
         <span className={`flex h-full flex-col px-2 ${tall ? "py-1" : "justify-center"}`}>
           <span className="flex min-w-0 items-center gap-1">
-            {done ? <span aria-hidden="true">✓</span> : null}
+            {done ? <span aria-hidden="true" className="inline-block animate-[pop_400ms_ease-out]">✓</span> : null}
             <span className="truncate text-[15px] leading-tight font-semibold">{view.title}</span>
           </span>
           {tall ? (

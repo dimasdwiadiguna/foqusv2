@@ -3,6 +3,7 @@
 import { useDbReady } from "@/data";
 import { QuickAddProvider } from "@/components/actions/QuickAdd";
 import { PlacementProvider } from "@/components/timeline/PlacementProvider";
+import { ResolverProvider } from "@/components/resolver/Resolver";
 import { BottomNav } from "./BottomNav";
 
 /**
@@ -18,7 +19,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-[max(env(safe-area-inset-top),16px)] pb-6">
         {db.status === "ready" ? (
           <QuickAddProvider>
-            <PlacementProvider>{children}</PlacementProvider>
+            <PlacementProvider>
+              <ResolverProvider>{children}</ResolverProvider>
+            </PlacementProvider>
           </QuickAddProvider>
         ) : db.status === "error" ? (
           <div role="alert" className="mt-16 rounded-card border border-danger bg-surface p-4">

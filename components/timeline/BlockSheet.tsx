@@ -13,6 +13,7 @@ import { PomodoroDots } from "@/components/ui/PomodoroDots";
 import { Sheet } from "@/components/ui/Sheet";
 import { Stepper } from "@/components/ui/Stepper";
 import { usePlacement } from "./PlacementProvider";
+import { useStartFocus } from "@/components/focus/useStartFocus";
 
 /**
  * The block sheet (§6.7 Plan): title, goal or area, time, a pomodoro stepper, a buffer stepper,
@@ -32,6 +33,7 @@ function BlockForm({ block, settings, onClose }: { block: Block; settings: Setti
   const goal = useRow("goals", action?.goal_id ?? "");
   const area = useRow("areas", action?.area_id ?? "");
   const { place } = usePlacement();
+  const focus = useStartFocus();
   const tz = settings.timezone;
   const [date, setDate] = useState(toLocalDate(block.starts_at, tz));
   const [time, setTime] = useState(toLocalTime(block.starts_at, tz));
@@ -64,6 +66,18 @@ function BlockForm({ block, settings, onClose }: { block: Block; settings: Setti
         {block.after_due ? <span className="rounded-full border border-warning/60 px-2 text-warning">after due date</span> : null}
       </p>
 
+      {block.status === "scheduled" || block.status === "active" ? (
+        <div className="mb-4">
+          <Button
+            variant="primary"
+            block
+            onClick={() => void focus.start({ blockId: block.id, pomodoros: block.planned_pomodoros })}
+          >
+            {block.status === "active" ? "Back to focus" : "Start focus"}
+          </Button>
+          {focus.dialog}
+        </div>
+      ) : null}
       {editable ? (
         <>
           <div className="mb-4 grid grid-cols-2 gap-3">
