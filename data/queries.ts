@@ -9,6 +9,7 @@ import type {
   Area,
   AvailabilityWindow,
   Block,
+  FocusSession,
   Goal,
   MajorMove,
   PeakWindow,
@@ -21,7 +22,7 @@ import type {
   Weekday,
 } from "@/types";
 import { availabilityId, peakId } from "@/lib/ids";
-import { addDays, dayBounds, weekdayOf } from "@/lib/time";
+import { addDays, dayBounds, endOfWeek, weekdayOf } from "@/lib/time";
 import { completedByAction } from "@/lib/actions";
 
 export async function getRow<N extends TableName>(table: N, id: string): Promise<Tables[N] | undefined> {
@@ -193,5 +194,36 @@ export async function getPlacementContext(date: string) {
     ...(await getDaySchedule(weekdayOf(date))),
     personal: await getPersonalBlocks(),
     blocks: blocks.map((b) => ({ ...b, title: titles.get(b.action_id) ?? "" })) as TitledBlock[],
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Step 1.4: sessions, unresolved blocks, slot picking
+
+
+/** The session that has not ended, if any. */
+export async function getActiveSessionRow(): Promise<FocusSession | null> {
+  return (await getAllRows("focus_sessions")).find((s) => s.ended_at === null && s.state.phase !== "ended") ?? null;
+}
+
+/** Unresolved blocks (§5.7): `scheduled` and ended before `nowMs`, oldest first. */
+export async function getUnresolvedBlocks(nowMs: number): Promise<Block[]> {
+  const rows = await getDb().t("blocks").where("status").equals("scheduled").toArray();
+  return rows
+    .filter((b) => !b.deleted_at && Date.parse(b.ends_at) < nowMs)
+    .sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+}
+
+/** What `lib/scheduler.pickSlot` needs for the rest of this week. */
+export async function getWeekContext(today: string) {
+  const settings = await getSettings();
+  if (!settings) throw new Error("Settings are missing.");
+  const windows = new Map<number, DaySchedule>();
+  for (const d of [1, 2, 3, 4, 5, 6, 7] as Weekday[]) windows.set(d, await getDaySchedule(d));
+  return {
+    settings,
+    personal: await getPersonalBlocks(),
+    blocks: await getBlocksForDays(addDays(today, -1), endOfWeek(today), settings.timezone),
+    windows: (w: Weekday) => ({ availability: windows.get(w)?.availability, peak: windows.get(w)?.peak }),
   };
 }

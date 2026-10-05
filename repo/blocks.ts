@@ -89,9 +89,13 @@ export async function markBlockDone(id: string): Promise<Block> {
   return writeTx(["blocks"], async () => {
     const block = await getDb().t("blocks").get(id);
     if (!block || block.deleted_at) throw new Error("That block no longer exists.");
+    // Done before its end: the rest of the slot is free again.
+    const now = Math.floor(Date.parse(nowInstant()) / 60_000) * 60_000;
+    const early = now > Date.parse(block.starts_at) && now < Date.parse(block.ends_at);
     return updateRow("blocks", id, {
       status: "done",
       completed_pomodoros: Math.max(block.completed_pomodoros, block.planned_pomodoros),
+      ...(early ? { ends_at: new Date(now).toISOString() } : {}),
     });
   });
 }

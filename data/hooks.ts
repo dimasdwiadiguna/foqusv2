@@ -84,3 +84,16 @@ export const useWeekList = (weekStart: string | undefined) =>
   );
 export const useWindows = (kind: "availability" | "peak") =>
   useLiveQuery(async () => (await q.getAllRows(kind === "availability" ? "availability_windows" : "peak_windows")).sort((a, b) => a.weekday - b.weekday), [kind]);
+
+// ---------------------------------------------------------------------------
+// Step 1.4
+
+/** The running session, null when none, undefined while loading. */
+export const useActiveSession = () => useLiveQuery(q.getActiveSessionRow, []);
+/** Unresolved blocks (scheduled, ended before now), oldest first. */
+export function useUnresolvedBlocks() {
+  const now = useNow(30_000);
+  // Re-query each half minute: a block becomes unresolved when its end passes.
+  const minute = Math.floor(now / 30_000);
+  return useLiveQuery(() => q.getUnresolvedBlocks(Date.now()), [minute]);
+}

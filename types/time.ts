@@ -29,10 +29,16 @@ export interface Block extends RowMeta {
 
 export type FocusPhase = "focus" | "break" | "paused" | "ended";
 
-/** Enough to resume a session at the right second after a reload. */
+/**
+ * Enough to resume a session at the right second after a reload. The timer is computed from this
+ * anchor and "now" (`lib/timer`), never from ticking.
+ */
 export interface FocusSessionState {
   phase: FocusPhase;
+  /** When this stretch of the phase began (for `paused`: when the pause began). */
   phase_started_at: Instant;
+  /** Seconds of this phase already run before `phase_started_at` (after a resume). */
+  phase_elapsed_before?: number;
   /** The phase to return to when resuming from `paused`. */
   resume_phase?: Exclude<FocusPhase, "paused" | "ended">;
   /** Seconds left in the interrupted phase when paused. */

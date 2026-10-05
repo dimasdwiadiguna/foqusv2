@@ -18,3 +18,30 @@ export async function liveWhere<N extends TableName>(
   const rows = await getDb().t(table).where(index).equals(value).toArray();
   return rows.filter((r) => !r.deleted_at);
 }
+
+/**
+ * Every table: the scope for compound operations that call other repo functions (whose nested
+ * transactions must be a subset of the outer one).
+ */
+export const ALL_TABLES: TableName[] = [
+  "settings",
+  "availability_windows",
+  "peak_windows",
+  "personal_blocks",
+  "areas",
+  "seasons",
+  "goals",
+  "season_plans",
+  "major_moves",
+  "recurrence_rules",
+  "actions",
+  "blocks",
+  "focus_sessions",
+  "daily_checkins",
+  "weekly_reviews",
+  "compass",
+  "plan_strength_snapshots",
+  "coach_messages",
+  "google_calendars",
+  "external_events",
+];

@@ -8,9 +8,9 @@ Spec and plan: `BRIEF.md` (the brief's own instructions call it `FOQUS-BUILD-BRI
 |---|---|
 | 1.1 Foundation | Done; owner checked |
 | 1.2 Areas, goals, and actions | Done |
-| 1.3 Time blocking | Done; waiting for the owner to check on the iPhone |
-| 1.4 Focus and the resolver | Next |
-| 1.5 Install, offline shell, and backup | Not started |
+| 1.3 Time blocking | Done |
+| 1.4 Focus and the resolver | Done; waiting for the owner to check on the iPhone |
+| 1.5 Install, offline shell, and backup | Next |
 | 2.1 Daily loop | Not started |
 | 2.2 Planning help | Not started |
 | 2.3 Reviews and coach | Not started |
@@ -55,6 +55,16 @@ Spec and plan: `BRIEF.md` (the brief's own instructions call it `FOQUS-BUILD-BRI
 - Week rollover on every app open (§5.4).
 - Checked in Chromium at iPhone size with real touch input: tray drag, snap-away, personal-block confirm, resize, off-peak without warning, tray emptying as actions get scheduled, scrolling over a block not moving it, empty-slot tap, swipe between days.
 
+### Step 1.4 · Focus and the resolver — what exists
+
+- `lib/timer`: the session is computed from a stored anchor and "now", walking through focus and break phases; pause, resume, skip break, +1, start next phase, and end are pure functions returning the new anchor. Tested for pause, skip break, add a pomodoro, a reload mid-phase, a return after the whole planned time, and auto-start off.
+- `lib/scheduler.pickSlot` (§5.11) for one block, with tests for peak-first goal work, non-peak-first area tasks, the cap, spreading across days, due dates and after-due, personal blocks and buffers, determinism.
+- Three ways to start: "Start focus" on the Next card and the block sheet; the center button (current block, or the next within 15 minutes, otherwise a picker of this week's actions with an adjustable ad hoc size). Starting shifts the block to now; a clash asks "Move that block back to the tray?".
+- The Focus screen (full screen, black): timer and draining ring, FOCUS/BREAK/PAUSED, dots, Pause/Resume, Skip break, +1 (offers to push the next block later or move it to the tray when it would run into it), End, Notes (scratchpad, autosaved), Capture (one line into "Other"), wake lock with the Auto-Lock hint where unsupported, a soft flash and dot burst on phase change, minimise. The center button shows the time left and pulses.
+- End sheet: away check when the finish was not seen live, "Is this action done?", "Done, or needs more time?" when the estimate is used up, focus rating, note. 0 pomodoros returns the block to scheduled.
+- The resolver: full-screen, one card per unresolved block, oldest first, on open and on return to the foreground; Done (count, then "is the action done?"), Reschedule (next free slot, pick a time, back to tray), Drop (or drop the action too); "Later". A count badge on the Today tab and a prompt card on Today.
+- Checked in Chromium at iPhone size with a controlled clock: reload mid-phase lands on the right second (14:48 after 10:12), pause holds through 5 minutes, all three starts, capture, notes, both end paths, the away check, the overlap question, and every resolver outcome with `reschedule_count` and the successor link.
+
 ## Decisions
 
 Choices made where the brief was silent.
@@ -95,6 +105,16 @@ Choices made where the brief was silent.
 - **Week rollover runs on every app open**; it is idempotent. When weekly reviews arrive (Step 2.3) it will skip weeks whose review is complete.
 - **Personal block labels** use `text-muted`, not `text-faint`, for contrast.
 - **Timeline scale**: 1.6 px per minute (a pomodoro is 48 px, the 5-minute snap 8 px).
+- **Session anchor**: `FocusSessionState` gained an optional `phase_elapsed_before` (seconds of the phase already run before a resume). `focus_seconds` holds focus time up to the anchor while a session runs, and the total once it ends. The pomodoro list is written on each user action and at the end.
+- **A session that ends early trims its done block** to the minute it ended, so the next session can start right away without overlapping. "Mark done" on a block before its end does the same.
+- **Away check rule**: asked when the screen first notices the finish more than 5 seconds after it happened (a lock, backgrounding, or opening the app later). Watching it finish live goes straight to the end sheet.
+- **The finished session's end sheet cannot be dismissed**: a finished session has to be ended.
+- **Center button with no session**: a ready screen ("Start focus") for the current block or one starting within 15 minutes, rather than starting instantly, so a stray tap never starts a session.
+- **"Back to tray"** in the resolver counts as a reschedule (count +1) with no successor; "Move that block back to the tray" when starting focus soft-deletes the block, since it has not happened yet.
+- **pickSlot fallbacks**: goal work tries inside the peak, then fully outside it (off-peak), then straddling it; area tasks the reverse. A slot needs room for the chunk plus its buffer inside the free interval. It searches today to Sunday only; past Sunday it reports "No free slot left this week".
+- **The resolver stays away while a session runs**, and the app underneath it is `inert`.
+- **Sheets always call the latest `onClose`** (a stale Escape handler had saved old scratchpad text).
+- **Compound repo operations use every table** in their transaction scope (`ALL_TABLES`), since nested repo calls must stay inside it.
 - **Lint-enforced layering.** `app/` and `components/` may not import `db/` or Dexie. `lib/` may not import db, repo, data, or React.
 
 ## Deviations
@@ -103,8 +123,7 @@ Choices made where the brief was silent.
 
 ## Owner tasks
 
-- Before Step 1.4, on the iPhone:
-  - Set your real availability, peak window, and personal blocks in Settings → Schedule.
-  - Drag an action from the tray onto Today's timeline; long-press a block and move it; resize it by its bottom handle. Check that dragging and resizing feel smooth.
-  - Scroll the timeline with your thumb starting on a block: it should scroll, not drag.
-  - Swipe the Plan timeline left and right to change day.
+- Before Step 1.5, on the iPhone (the brief's owner checks):
+  - Start a 1-pomodoro session, lock the phone for ten minutes, unlock, and confirm the timer is right.
+  - Run a full pomodoro with the app open: the screen should stay awake (iOS 18.4 or later in the installed app; in a Safari tab the hint about Auto-Lock may show) and the phase change should be visible.
+  - Leave a block unresolved, reopen the app, and try the resolver.
