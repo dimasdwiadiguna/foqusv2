@@ -1,11 +1,50 @@
-export function ScreenHeader({ title, subtitle, actions }: { title: React.ReactNode; subtitle?: React.ReactNode; actions?: React.ReactNode }) {
+import Link from "next/link";
+import { BackIcon } from "@/components/shell/icons";
+
+/**
+ * The compact header on every tabbed screen. It sticks to the top of the scroll area (so "+" and
+ * the other actions stay one tap away) and carries the top safe-area inset itself, so content never
+ * shows above it under the notch. One row: optional back link or leading control, a title with an
+ * optional one-line subtitle, then actions.
+ */
+export function ScreenHeader({
+  title,
+  subtitle,
+  actions,
+  back,
+  leading,
+}: {
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
+  actions?: React.ReactNode;
+  back?: { href: string; label: string };
+  leading?: React.ReactNode;
+}) {
   return (
-    <header className="mb-6 flex items-start justify-between gap-2">
-      <div className="min-w-0">
-        <h1 className="text-title">{title}</h1>
-        {subtitle ? <p className="mt-0.5 text-caption text-text-muted">{subtitle}</p> : null}
+    <header
+      data-screen-header=""
+      className="sticky top-0 z-20 -mx-4 mb-3 border-b border-border/60 bg-bg px-4 pt-[max(env(safe-area-inset-top),4px)]"
+    >
+      <div className="flex min-h-13 items-center gap-1">
+        {back ? (
+          <Link href={back.href} aria-label={`Back to ${back.label}`} className="-ml-3 flex size-11 shrink-0 items-center justify-center text-text-muted">
+            <BackIcon className="size-6" />
+          </Link>
+        ) : null}
+        {leading}
+        <div className="min-w-0 flex-1 py-1">
+          <h1 className="line-clamp-2 text-[20px] leading-6 font-bold break-words">{title}</h1>
+          {subtitle ? <p className="truncate text-caption leading-4 text-text-muted">{subtitle}</p> : null}
+        </div>
+        {actions ? <div className="-mr-2 flex shrink-0 items-center">{actions}</div> : null}
       </div>
-      {actions ? <div className="-mr-2 flex shrink-0 items-center">{actions}</div> : null}
     </header>
   );
+}
+
+/** Height covered by the sticky header inside a scroll container (0 when there is none). */
+export function headerCover(container: HTMLElement): number {
+  const header = container.querySelector<HTMLElement>("[data-screen-header]");
+  if (!header) return 0;
+  return Math.max(0, header.getBoundingClientRect().bottom - container.getBoundingClientRect().top);
 }

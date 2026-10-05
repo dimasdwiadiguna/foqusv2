@@ -24,7 +24,7 @@ export function WeekStrip({ date, today, onSelect }: { date: string; today: stri
   const cap = settings?.daily_pomodoro_cap ?? Infinity;
 
   return (
-    <div role="tablist" aria-label="Days of the week" className="mb-4 grid grid-cols-7 gap-1">
+    <div role="tablist" aria-label="Days of the week" className="mb-3 grid grid-cols-7 gap-1">
       {days.map((d, i) => {
         const n = load.get(d) ?? 0;
         const over = n > cap;
@@ -37,15 +37,17 @@ export function WeekStrip({ date, today, onSelect }: { date: string; today: stri
             aria-selected={selected}
             aria-label={`${formatDayHeader(d)}, ${n} pomodoros${over ? `, over your cap of ${cap}` : ""}`}
             onClick={() => onSelect(d)}
-            className={`flex min-h-16 flex-col items-center justify-center rounded-block ${selected ? "bg-surface-raised" : ""}`}
+            className={`flex min-h-12 flex-col items-center justify-center rounded-block border-b-2 ${
+              selected ? "border-accent bg-surface-raised" : "border-transparent"
+            }`}
           >
-            <span className={`text-caption ${d === today ? "text-accent" : "text-text-muted"}`}>{WEEKDAY_LETTERS[i]}</span>
-            <span className="text-caption text-text-muted">{parseDate(d).day}</span>
-            <span className={`text-heading ${over ? "text-danger" : ""}`}>
+            <span className={`text-[12px] leading-4 ${d === today ? "font-semibold text-accent" : "text-text-muted"}`}>
+              {WEEKDAY_LETTERS[i]} {parseDate(d).day}
+            </span>
+            <span className={`text-body leading-5 font-semibold ${over ? "text-danger" : ""}`}>
               {n}
               {over ? "!" : ""}
             </span>
-            <span aria-hidden="true" className={`mt-0.5 h-0.5 w-5 rounded-full ${selected ? "bg-accent" : "bg-transparent"}`} />
           </button>
         );
       })}

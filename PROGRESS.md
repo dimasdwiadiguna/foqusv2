@@ -119,7 +119,12 @@ Choices made where the brief was silent.
 
 ## Deviations
 
-- None.
+- **Compact sticky screen header** (owner's request after Step 1.4): every tabbed screen uses one `ScreenHeader` that sticks to the top while scrolling, so "+" and the other actions are always one tap away. It is a single 52 px row (plus the safe-area inset) with the title at 20/700 instead of §6.3's 24/700 Title style, and a one-line subtitle. Long titles wrap to two lines. Plan's arrows and week sit in the header; the goal page's back, title, and ⋯ do too, with area, dates, and Achieve just below. The Plan week strip is two lines (day and date, then the count) instead of three.
+
+### Refinement after Step 1.4 — compact sticky header
+
+- `ScreenHeader` is sticky, opaque, and carries the top safe-area inset; the scroll area no longer pads the top. The timeline's scroll-to-now and drag auto-scroll allow for the header covering the top.
+- Measured at iPhone size: 57 px before the safe-area inset (was about 88 px for Today and 166 px for Plan with its week strip), and "+" stays visible and opens quick add after scrolling.
 
 ## Owner tasks
 
