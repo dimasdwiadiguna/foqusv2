@@ -6,6 +6,7 @@ import { formatShortDate } from "@/lib/time";
 import type { Action } from "@/types";
 import { celebrate } from "@/components/celebration/celebrate";
 import { PomodoroDots } from "@/components/ui/PomodoroDots";
+import { RepeatIcon } from "@/components/shell/icons";
 import { SwipeRow } from "@/components/ui/SwipeRow";
 import { DragHandle, type SortableRenderProps } from "@/components/ui/Sortable";
 import { usePlacement } from "@/components/timeline/PlacementProvider";
@@ -71,6 +72,13 @@ export function ActionRow({
         <span className={`block truncate ${open ? "" : "text-text-muted line-through"}`}>{action.title}</span>
         <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-caption text-text-muted">
           <PomodoroDots completed={completed} total={action.estimate_pomodoros} className="text-accent" />
+          {action.recurrence_rule_id ? (
+            <span className="inline-flex items-center gap-0.5">
+              <RepeatIcon className="size-3.5" />
+              <span className="sr-only">Recurring,</span>
+              {action.occurrence_date ? formatShortDate(action.occurrence_date) : null}
+            </span>
+          ) : null}
           {dropped ? <span>Dropped</span> : null}
           {action.due_on ? <span>Due {formatShortDate(action.due_on)}</span> : null}
           {open && action.planned_week && action.planned_week === weekStart ? (

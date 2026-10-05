@@ -21,7 +21,10 @@ export function TimelineBoard({
   trayOpen,
   onTrayOpenChange,
   onSwipeDay,
+  planning = false,
 }: {
+  /** Plan on the current week: "Draft my week" and the draft bar (§6.7 Plan). */
+  planning?: boolean;
   date: string;
   weekStart: string | undefined;
   trayOpen: boolean;
@@ -63,7 +66,7 @@ export function TimelineBoard({
   return (
     <>
       <DayTimeline date={date} handleRef={timeline} onSwipeDay={onSwipeDay} onAddAt={setAddAt} />
-      <Tray weekStart={weekStart} date={date} open={trayOpen} onOpenChange={onTrayOpenChange} drag={drag} />
+      <Tray weekStart={weekStart} date={date} open={trayOpen} onOpenChange={onTrayOpenChange} drag={drag} planning={planning} />
       {ghost ? (
         <div
           aria-hidden="true"

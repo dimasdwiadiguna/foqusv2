@@ -9,3 +9,5 @@ export const availabilityId = (weekday: Weekday) => `avail-${weekday}`;
 export const peakId = (weekday: Weekday) => `peak-${weekday}`;
 /** `<goal_id>:<season_id>` */
 export const seasonPlanId = (goalId: string, seasonId: string) => `${goalId}:${seasonId}`;
+/** A recurring rule's occurrence (§4.1): `<rule_id>:<occurrence_date>`. */
+export const occurrenceId = (ruleId: string, date: string) => `${ruleId}:${date}`;

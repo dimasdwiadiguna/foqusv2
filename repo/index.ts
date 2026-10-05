@@ -47,3 +47,5 @@ export {
 export { resolveDone, rescheduleTo, rescheduleToTray, resolveDrop } from "./resolver";
 export { importBackup } from "./backup";
 export { saveCheckin, completeCheckin, type CheckinInput } from "./checkins";
+export { createRule, updateRule, deleteRule, generateOccurrences, type NewRule, type RuleEdit } from "./recurrence";
+export { draftMyWeek, commitDraft, discardDraft, type DraftResult } from "./draft";

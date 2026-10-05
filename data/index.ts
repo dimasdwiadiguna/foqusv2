@@ -27,6 +27,8 @@ export {
   useCheckin,
   useCheckins,
   useStreaks,
+  useCapacity,
+  useRules,
 } from "./hooks";
 export { useDbReady, type DbState } from "./ready";
 export {

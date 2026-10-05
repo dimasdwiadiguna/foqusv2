@@ -112,3 +112,14 @@ export function useStreaks() {
   const tz = settings?.timezone;
   return useLiveQuery(async () => (today && tz ? q.getStreaks(today, tz) : undefined), [today, tz]);
 }
+
+// ---------------------------------------------------------------------------
+// Step 2.2
+
+/** The capacity meter for a week's remaining days; null for a past week, undefined while loading. */
+export function useCapacity(weekStart: string | undefined) {
+  const now = useNow(60_000);
+  const minute = Math.floor(now / 60_000);
+  return useLiveQuery(async () => (weekStart ? q.getCapacity(weekStart, Date.now()) : null), [weekStart, minute]);
+}
+export const useRules = () => useLiveQuery(q.getRules, []);

@@ -24,6 +24,7 @@ import {
   type GoalBasics,
 } from "@/repo";
 import type { Goal, MajorMove, Obstacle, SeasonPlan } from "@/types";
+import { RuleList } from "@/components/recurrence/RuleList";
 import { EstimateStepper } from "@/components/actions/EstimateStepper";
 import { Button, IconButton } from "@/components/ui/Button";
 import { ConfirmSheet } from "@/components/ui/ConfirmSheet";
@@ -370,7 +371,7 @@ export function RealityStep({ register, plan }: StepBase & { plan: SeasonPlan })
 // 5. System: first actions
 
 export function SystemStep({ register, goal, plan }: StepBase & { goal: Goal; plan: SeasonPlan }) {
-  const actions = (useActionsForGoal(goal.id) ?? []).filter((a) => a.status === "todo");
+  const actions = (useActionsForGoal(goal.id) ?? []).filter((a) => a.status === "todo" && !a.recurrence_rule_id);
   const moves = useMajorMoves(plan.id) ?? [];
   const [title, setTitle] = useState("");
   const [estimate, setEstimate] = useState(1);
@@ -448,6 +449,8 @@ export function SystemStep({ register, goal, plan }: StepBase & { goal: Goal; pl
           Add action
         </Button>
       </form>
+      <h3 className="mt-6 mb-1 text-heading">Recurring actions</h3>
+      <RuleList goalId={goal.id} />
     </>
   );
 }
@@ -457,7 +460,7 @@ export function SystemStep({ register, goal, plan }: StepBase & { goal: Goal; pl
 
 export function FinishStep({ goal, plan, register }: { goal: Goal; plan: SeasonPlan; register: StepBase["register"] }) {
   const moves = useMajorMoves(plan.id) ?? [];
-  const actions = (useActionsForGoal(goal.id) ?? []).filter((a) => a.status === "todo");
+  const actions = (useActionsForGoal(goal.id) ?? []).filter((a) => a.status === "todo" && !a.recurrence_rule_id);
   useRegister(register, null);
   const pomodoros = actions.reduce((n, a) => n + a.estimate_pomodoros, 0);
 

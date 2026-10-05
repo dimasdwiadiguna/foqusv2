@@ -15,6 +15,7 @@ import type {
   MajorMove,
   PeakWindow,
   PersonalBlock,
+  RecurrenceRule,
   Season,
   SeasonPlan,
   Settings,
@@ -23,7 +24,8 @@ import type {
   Weekday,
 } from "@/types";
 import { availabilityId, peakId } from "@/lib/ids";
-import { addDays, dayBounds, endOfWeek, weekdayOf } from "@/lib/time";
+import { addDays, dayBounds, endOfWeek, todayIn, weekDates, weekdayOf } from "@/lib/time";
+import { capacity, type Capacity } from "@/lib/capacity";
 import { completedByAction } from "@/lib/actions";
 import { BACKUP_TABLES, buildBackup, type Backup } from "@/lib/backup";
 import { checkinDays, focusDays, streakFrom, type Streak } from "@/lib/streaks";
@@ -266,4 +268,38 @@ export async function getStreaks(today: string, timeZone: string): Promise<{ che
     checkin: streakFrom(checkinDays(await getAllRows("daily_checkins")), today),
     focus: streakFrom(focusDays(blocks, goalActions, timeZone), today),
   };
+}
+
+// ---------------------------------------------------------------------------
+// Step 2.2: capacity
+
+
+/** The capacity meter (§5.12) for the remaining days of `weekStart`'s week, at `nowMs`. */
+export async function getCapacity(weekStart: string, nowMs: number): Promise<Capacity | null> {
+  const settings = await getSettings();
+  if (!settings) return null;
+  const tz = settings.timezone;
+  const now = new Date(nowMs).toISOString();
+  const today = todayIn(now, tz);
+  const days = weekDates(weekStart).filter((d) => d >= today);
+  if (days.length === 0) return null;
+  const schedules = new Map<number, DaySchedule>();
+  for (const d of [1, 2, 3, 4, 5, 6, 7] as Weekday[]) schedules.set(d, await getDaySchedule(d));
+  const blocks = await getBlocksForDays(days[0], days[days.length - 1], tz);
+  const goalActions = new Set((await getAllRows("actions")).filter((a) => a.goal_id).map((a) => a.id));
+  return capacity({
+    days,
+    timeZone: tz,
+    now,
+    windows: (w) => ({ availability: schedules.get(w)?.availability }),
+    personal: await getPersonalBlocks(),
+    events: [],
+    blocks,
+    goalActionIds: goalActions,
+  });
+}
+
+/** Live recurring rules, by title. */
+export async function getRules(): Promise<RecurrenceRule[]> {
+  return (await getAllRows("recurrence_rules")).sort((a, b) => a.title.localeCompare(b.title));
 }

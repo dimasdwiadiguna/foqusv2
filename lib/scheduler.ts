@@ -3,7 +3,7 @@
  * `pickSlot` places one chunk of one action without breaking any rule in §5.8 (only the owner can
  * do that, manually), except that it may land after the due date when nothing fits before it.
  */
-import type { Action, DateString, Instant, Weekday } from "@/types";
+import type { Action, DateString, Instant, TimeString, Weekday } from "@/types";
 import {
   freeIntervals,
   occupies,
@@ -15,7 +15,7 @@ import {
   type ScheduleBlock,
 } from "./availability";
 import { MINUTE, normalize, subtract, within, type Interval } from "./intervals";
-import { addDays, endOfWeek, toLocalDate, weekdayOf } from "./time";
+import { addDays, endOfWeek, toLocalDate, weekdayOf, zonedToInstant } from "./time";
 
 export interface PickInput {
   action: Pick<Action, "id" | "goal_id" | "due_on">;
@@ -33,6 +33,10 @@ export interface PickInput {
   dailyCap: number;
   /** A block to ignore everywhere (the missed one being rescheduled). */
   excludeBlockId?: string;
+  /** Candidate days, in order; defaults to today … Sunday. Days before today are ignored. */
+  days?: readonly DateString[];
+  /** A recurring occurrence (§5.11): its own day only, at its preferred time when that is free. */
+  ownDay?: { date: DateString; preferredStart: TimeString | null };
 }
 
 export interface PickedSlot {
@@ -69,9 +73,11 @@ export function pickSlot(input: PickInput): PickedSlot | null {
   const blocks = input.blocks.filter((b) => b.id !== input.excludeBlockId && occupies(b));
   const dateOf = (b: ScheduleBlock) => toLocalDate(b.starts_at, tz);
 
-  const week: DateString[] = [];
-  for (let d = input.today; d <= endOfWeek(input.today); d = addDays(d, 1)) week.push(d);
-  const due = action.due_on;
+  let week: DateString[] = [];
+  if (input.days) week = input.days.filter((d) => d >= input.today);
+  else for (let d = input.today; d <= endOfWeek(input.today); d = addDays(d, 1)) week.push(d);
+  if (input.ownDay) week = week.includes(input.ownDay.date) ? [input.ownDay.date] : [];
+  const due = input.ownDay ? null : action.due_on;
   const beforeDue = due ? week.filter((d) => d <= due) : week;
   const afterDue = due ? week.filter((d) => d > due) : [];
 
@@ -107,6 +113,19 @@ export function pickSlot(input: PickInput): PickedSlot | null {
     }
     return null;
   };
+
+  // A recurring occurrence at its preferred time, when that time is free and under the cap.
+  const preferred = input.ownDay?.preferredStart;
+  if (preferred && week.length === 1 && load(week[0]) + input.pomodoros <= input.dailyCap) {
+    const d = week[0];
+    const z = dayZones(d);
+    const start = Date.parse(zonedToInstant(d, preferred, tz));
+    const f = z.free.find((x) => start >= x.start && start + len + buffer <= x.end);
+    if (f) {
+      const span = { start, end: start + len };
+      return { ...span, date: d, offPeak: action.goal_id !== null && !(z.peakSpan && within(span, [z.peakSpan])), afterDue: false };
+    }
+  }
 
   const tryDays = (days: DateString[]) => {
     const underCap = days.filter((d) => load(d) + input.pomodoros <= input.dailyCap);

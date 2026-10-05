@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRow, useSettings } from "@/data";
 import { TIME_OPTIONS } from "@/lib/availability";
 import { toLocalDate, toLocalTime, zonedToInstant } from "@/lib/time";
+import { endOfWeek, startOfWeek } from "@/lib/time";
 import { deleteBlock, markBlockDone } from "@/repo";
 import type { Block, Settings } from "@/types";
 import { Button } from "@/components/ui/Button";
@@ -85,7 +86,7 @@ function BlockForm({ block, settings, onClose }: { block: Block; settings: Setti
               <label htmlFor="block-date" className="mb-1 block text-caption text-text-muted">
                 Day
               </label>
-              <input id="block-date" type="date" value={date} onChange={(e) => e.target.value && setDate(e.target.value)} className={`${controlClass} min-h-11`} />
+              <input id="block-date" type="date" {...weekLimits(action?.occurrence_date)} value={date} onChange={(e) => e.target.value && setDate(e.target.value)} className={`${controlClass} min-h-11`} />
             </div>
             <div>
               <label htmlFor="block-time" className="mb-1 block text-caption text-text-muted">
@@ -159,4 +160,9 @@ function BlockForm({ block, settings, onClose }: { block: Block; settings: Setti
       />
     </>
   );
+}
+
+/** A recurring occurrence moves only within its own week (§5.5). */
+export function weekLimits(occurrenceDate: string | null | undefined): { min?: string; max?: string } {
+  return occurrenceDate ? { min: startOfWeek(occurrenceDate), max: endOfWeek(occurrenceDate) } : {};
 }

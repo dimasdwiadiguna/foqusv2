@@ -5,6 +5,7 @@ import { getDb } from "@/db";
 import { ensureSeed } from "@/db/seed";
 import { startOfWeek, todayIn } from "@/lib/time";
 import { rolloverWeek } from "@/repo/actions";
+import { generateOccurrences } from "@/repo/recurrence";
 import { getSettings } from "./queries";
 
 let opening: Promise<void> | null = null;
@@ -15,7 +16,12 @@ function openOnce(): Promise<void> {
     const now = new Date().toISOString();
     await ensureSeed(getDb(), now);
     const settings = await getSettings();
-    if (settings) await rolloverWeek(startOfWeek(todayIn(now, settings.timezone)));
+    if (settings) {
+      const today = todayIn(now, settings.timezone);
+      await rolloverWeek(startOfWeek(today));
+      // Recurring occurrences for the rest of this week (§5.5); ids are deterministic.
+      await generateOccurrences(startOfWeek(today), today);
+    }
     // Ask the browser not to evict this data under storage pressure (Step 1.5).
     void navigator.storage?.persist?.().catch(() => false);
   })();

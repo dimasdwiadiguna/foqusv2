@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { useActionsForArea, useRow } from "@/data";
 import { ActionList } from "@/components/actions/ActionList";
+import { RuleList } from "@/components/recurrence/RuleList";
 import { QuickAddButton } from "@/components/actions/QuickAddButton";
 import { useQuickAdd } from "@/components/actions/QuickAdd";
 import { ScreenSkeleton } from "@/components/shell/AppShell";
@@ -49,10 +50,16 @@ function Area() {
         subtitle={area.archived_at ? "Archived" : "Area tasks"}
         actions={<QuickAddButton preset={{ area_id: area.id }} />}
       />
-      <ActionList actions={actions ?? []} emptyText="No open tasks in this area." />
+      <ActionList actions={(actions ?? []).filter((a) => !a.recurrence_rule_id)} emptyText="No open tasks in this area." />
       <Button block className="mt-2" onClick={() => quickAdd({ area_id: area.id })}>
         Add a task
       </Button>
+      <section aria-labelledby="recurring" className="mt-6">
+        <h2 id="recurring" className="mb-2 text-heading">
+          Recurring tasks
+        </h2>
+        <RuleList areaId={area.id} readOnly={Boolean(area.archived_at)} />
+      </section>
     </>
   );
 }
