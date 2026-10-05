@@ -12,6 +12,7 @@ import { PomodoroDots } from "@/components/ui/PomodoroDots";
 import { Sheet } from "@/components/ui/Sheet";
 import { Stepper } from "@/components/ui/Stepper";
 import { usePlacement, type PlaceOptions } from "./PlacementProvider";
+import { weekLimits } from "./BlockSheet";
 
 /**
  * Schedule one action (§6.8 swipe left, and the tap alternative to dragging from the tray):
@@ -65,7 +66,9 @@ function ScheduleForm({
   const tz = settings.timezone;
   const max = settings.max_pomodoros_per_block;
   const { remaining, unscheduled } = actionNumbers(action, blocks, new Date(now).toISOString());
-  const [date, setDate] = useState(date0);
+  // An occurrence starts on its own day while that is still ahead (§5.5).
+  const today = todayIn(now, tz);
+  const [date, setDate] = useState(action.occurrence_date && action.occurrence_date >= today ? action.occurrence_date : date0);
   const [pomodoros, setPomodoros] = useState(Math.min(Math.max(options?.pomodoros ?? unscheduled, 1), max));
   const [time, setTime] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -130,6 +133,7 @@ function ScheduleForm({
           <input
             id="schedule-date"
             type="date"
+            {...weekLimits(action.occurrence_date)}
             value={date}
             onChange={(e) => {
               if (e.target.value) setDate(e.target.value);

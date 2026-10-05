@@ -21,6 +21,7 @@ import { formatDateRange, formatSeason, seasonOfDate } from "@/lib/time";
 import { achieveGoal, addMajorMove, deleteGoal, deleteMajorMove, dropGoal, setMajorMoveDone, updateMetricCurrent } from "@/repo";
 import type { Action, Goal, MajorMove, SeasonPlan } from "@/types";
 import { ActionList } from "@/components/actions/ActionList";
+import { RuleList } from "@/components/recurrence/RuleList";
 import { useQuickAdd } from "@/components/actions/QuickAdd";
 import { showMoment } from "@/components/celebration/Moments";
 import { ScreenSkeleton } from "@/components/shell/AppShell";
@@ -86,7 +87,9 @@ function GoalBody({ goal, plan, readOnly }: { goal: Goal; plan: SeasonPlan; read
   const progress = goalProgress(plan, actions, completed ?? new Map());
   const stats = goalStats(blocks, new Date(now).toISOString(), settings?.focus_minutes);
   const moveIds = new Set(moves.map((m) => m.id));
-  const loose = actions.filter((a) => !a.major_move_id || !moveIds.has(a.major_move_id));
+  // Recurring occurrences are listed under their rule (section 7), not one by one.
+  const listed = actions.filter((a) => !a.recurrence_rule_id);
+  const loose = listed.filter((a) => !a.major_move_id || !moveIds.has(a.major_move_id));
   const backHref = `/goals?season=${plan.season_id}`;
   const editHref = `/goal-setup?goal=${encodeURIComponent(goal.id)}&season=${plan.season_id}&step=1&mode=edit`;
 
@@ -170,7 +173,7 @@ function GoalBody({ goal, plan, readOnly }: { goal: Goal; plan: SeasonPlan; read
           <MoveSection
             key={m.id}
             move={m}
-            actions={actions.filter((a) => a.major_move_id === m.id)}
+            actions={listed.filter((a) => a.major_move_id === m.id)}
             readOnly={readOnly}
             onAdd={() => quickAdd({ goal_id: goal.id, major_move_id: m.id })}
           />
@@ -189,6 +192,14 @@ function GoalBody({ goal, plan, readOnly }: { goal: Goal; plan: SeasonPlan; read
             Add an action
           </Button>
         ) : null}
+      </section>
+
+      {/* 7. Recurring actions */}
+      <section aria-labelledby="recurring" className="mb-4">
+        <h2 id="recurring" className="mb-2 text-heading">
+          Recurring actions
+        </h2>
+        <RuleList goalId={goal.id} readOnly={readOnly} />
       </section>
 
       {/* 8. Stats */}

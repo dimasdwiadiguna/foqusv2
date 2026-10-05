@@ -11,8 +11,10 @@ import {
 import { actionNumbers } from "@/lib/actions";
 import { goalColor } from "@/lib/areas";
 import type { Action } from "@/types";
-import { ChevronDownIcon } from "@/components/shell/icons";
+import { ChevronDownIcon, RepeatIcon } from "@/components/shell/icons";
+import { formatShortDate } from "@/lib/time";
 import { PomodoroDots } from "@/components/ui/PomodoroDots";
+import { DraftBar, DraftButton, useDraftBlocks } from "./DraftBar";
 import { usePlacement } from "./PlacementProvider";
 import { useDragGesture, type Point } from "./useDragGesture";
 
@@ -69,8 +71,11 @@ export function Tray({
   open,
   onOpenChange,
   drag,
+  planning = false,
 }: {
   weekStart: string | undefined;
+  /** Plan on the current week: the bar offers "Draft my week", and a draft replaces the tray. */
+  planning?: boolean;
   /** The day shown on the timeline; the schedule sheet starts there. */
   date: string;
   open: boolean;
@@ -83,7 +88,16 @@ export function Tray({
 }) {
   const items = useTrayItems(weekStart);
   const list = useWeekList(weekStart);
+  const drafts = useDraftBlocks(planning ? weekStart : undefined);
   if (!items) return null;
+  const drafting = planning && weekStart && drafts && drafts.length > 0;
+  if (drafting) {
+    return (
+      <div className="sticky -bottom-6 z-30 -mx-4 mt-3">
+        <DraftBar weekStart={weekStart} drafted={drafts.length} />
+      </div>
+    );
+  }
 
   return (
     <div className="sticky -bottom-6 z-30 -mx-4 mt-3">
@@ -117,21 +131,24 @@ export function Tray({
           </>
         )}
       </div>
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls="tray-panel"
-        onClick={() => onOpenChange(!open)}
-        className="flex min-h-11 w-full items-center justify-between border-t border-border bg-surface px-4 text-left"
-      >
-        <span>
-          Unscheduled this week{" "}
-          <span className="text-text-muted">({items.length})</span>
-        </span>
-        <ChevronDownIcon
-          className={`size-5 text-text-muted transition-transform ${open ? "" : "rotate-180"}`}
-        />
-      </button>
+      <div className="flex items-center border-t border-border bg-surface">
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls="tray-panel"
+          onClick={() => onOpenChange(!open)}
+          className="flex min-h-11 min-w-0 flex-1 items-center justify-between gap-2 px-4 text-left"
+        >
+          <span className="truncate">
+            {planning ? "Tray" : "Unscheduled this week"}{" "}
+            <span className="text-text-muted">({items.length})</span>
+          </span>
+          <ChevronDownIcon
+            className={`size-5 shrink-0 text-text-muted transition-transform ${open ? "" : "rotate-180"}`}
+          />
+        </button>
+        {planning && weekStart ? <DraftButton weekStart={weekStart} unscheduled={items.length} /> : null}
+      </div>
     </div>
   );
 }
@@ -162,8 +179,12 @@ function TrayRow({
         style={{ borderLeft: `4px solid ${item.color}` }}
       >
         <span className="min-w-0 flex-1">
-          <span className="block truncate">{item.action.title}</span>
+          <span className="flex items-center gap-1.5 truncate">
+            {item.action.recurrence_rule_id ? <RepeatIcon className="size-3.5 shrink-0 text-text-muted" /> : null}
+            <span className="truncate">{item.action.title}</span>
+          </span>
           <span className="block truncate text-caption text-text-muted">
+            {item.action.occurrence_date ? `${formatShortDate(item.action.occurrence_date)} · ` : ""}
             {item.owner}
           </span>
         </span>

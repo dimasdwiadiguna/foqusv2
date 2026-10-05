@@ -23,6 +23,7 @@ FOQUS is a personal, mobile-first PWA for one owner on an iPhone. It connects qu
 - `components/timeline/` — `DayTimeline`, `TimelineBoard` (timeline + tray), and `PlacementProvider` (`usePlacement()`: every block create/move/resize goes through `place()`, which applies §5.8: snap on overlap, confirm soft warnings). Drags use `useDragGesture` (long-press on touch).
 - `components/focus/` — `useStartFocus()` (start with the clash question), the Focus screen (`app/(flows)/focus`), `EndSheet`. The timer is always `lib/timer.timerAt(session, now)`; never store ticking state. `components/resolver/` — the missed-block resolver overlay.
 - `components/checkin/` — the daily check-in flow (`app/(flows)/checkin`), Today's `PromptCards`, `StreakBadges`. `lib/streaks`, `lib/checkin`. Full-screen celebrations: `celebration/Moments` (`showMoment`, mounted in the root layout).
+- Planning (Step 2.2): `lib/recurrence` + `repo/recurrence` (occurrences `<rule_id>:<date>`, generated on open in `data/ready`), `lib/draft` + `repo/draft` (weekly draft on `lib/scheduler.pickSlot`), `lib/capacity`. UI: `components/recurrence/`, `timeline/DraftBar`, `timeline/CapacityMeter`.
 - PWA: `app/manifest.ts`, `app/sw.js/` (service worker source, versioned per build; every new route goes in its `ROUTES`), `components/shell/ServiceWorker.tsx` (registers in production only; "Reload to update"). Icons and splashes: `node scripts/make-icons.cjs`. Backups: `lib/backup` (format, validation), `data/getBackup`, `repo/importBackup`.
 
 ## Conventions (BRIEF §3.2, §3.3)

@@ -11,9 +11,9 @@ Spec and plan: `BRIEF.md` (the brief's own instructions call it `FOQUS-BUILD-BRI
 | 1.3 Time blocking | Done |
 | 1.4 Focus and the resolver | Done |
 | 1.5 Install, offline shell, and backup | Done |
-| 2.1 Daily loop | Done; waiting for the owner to check on the iPhone |
-| 2.2 Planning help | Next |
-| 2.3 Reviews and coach | Not started |
+| 2.1 Daily loop | Done; owner checked |
+| 2.2 Planning help | Done; waiting for the owner to check on the iPhone |
+| 2.3 Reviews and coach | Next |
 | 2.4 Completion | Not started |
 | 3.1 Schema and login | Not started |
 | 3.2 Sync | Not started |
@@ -85,6 +85,16 @@ Spec and plan: `BRIEF.md` (the brief's own instructions call it `FOQUS-BUILD-BRI
 - **Celebrations**: "Day won" (the Next card becomes a green banner when every planned block today is done, with confetti the first time that day); the streak roll-up on the check-in's last screen and in the header; streak milestones at 7, 30, and 100 days and the goal-achieved moment as full-screen moments (goal: metric, actions done, pomodoros, focus hours, follow-through). A tap anywhere dismisses a moment; it leaves by itself after 6 seconds. With reduce motion on, every celebration is a 300 ms fade and there is no confetti.
 - Checked in Chromium at iPhone size with a fake clock: the card is quiet at 06:00 and prominent once the block ended; the whole flow including inline resolving; Day won with confetti once (not again on reload); streaks 1/1; history and Edit; edits allowed at 23:50 the next day and refused at 00:01 after; yesterday's card; the 7-day milestone; the goal moment dismissed by tap and by time; reduce motion (fade, no confetti). No console errors; the Stage 1 suites still pass.
 
+### Step 2.2 · Planning help — what exists
+
+- **Recurring actions** (§5.5): a rule editor sheet (title, goal or area, major move, days, pomodoros each time, preferred time, end date, pause, delete) in wizard step 5, goal detail section 7 ("Recurring actions"), and each area page ("Recurring tasks"). Each rule shows its days, size, time, end, and "This week: 1 of 3 done".
+- **Weekly generation**: on every app open, each active rule adds one action per matching weekday from today to Sunday, with the id `<rule_id>:<date>`, straight onto the week list. Opening twice creates nothing new. A rule created mid-week fills the rest of this week at once. Editing, pausing, or deleting a rule changes only occurrences from today on that have no block yet.
+- **Occurrences stay in their week**: the repo refuses to place, move, or re-list them outside it; date pickers are limited to the week; at the week rollover, unfinished ones are dropped instead of carried. The repeat icon and the occurrence's day show on action rows and in the tray. Occurrences are listed under their rule, not one by one in goal and area lists.
+- **`lib/capacity`** and the **capacity meter** sticking under Plan's week strip: a bar with "75% · Full week" (Room to spare / Full week / Overbooked in success, warning, danger), "18 h planned of 24 h free · Goals 58% · Areas 42%". Free time is before FOQUS blocks over the week's remaining days; planned is length + buffer of scheduled and draft blocks still ahead.
+- **The weekly draft** (`lib/draft` on top of `pickSlot`): ranking (recurring by date; goal work by goal rank, due date, plan end, order; then area tasks by due date, order) and chunked placement with smaller chunks when a full one does not fit. "Draft my week" sits in Plan's tray bar for the current week. Draft blocks are dashed and see-through in the owner's color, can be dragged, resized, or deleted, and keep the status `draft` until Commit. While a draft exists, a sticky bar replaces the tray: "11 blocks drafted · 1 didn't fit [Discard] [Commit]"; "didn't fit" opens the list with reasons ("No free time before due date", "Daily cap reached all week", "No free slot left"). Running it again replaces the draft and leaves committed blocks alone.
+- Tests: scheduler and draft (goal rank order, peak-first goal work and non-peak-first area tasks, the daily cap, 8 pomodoros split over two days, smaller chunks re-queued, an unmeetable due date marked after-due or listed with its reason, recurring on its own day at its preferred time, determinism with shuffled input, and a 30-action week checked for no overlap with blocks, buffers, personal blocks, or events, within availability, under the cap, in well under a second); capacity; recurrence; repo tests for generating twice on a Monday, editing and pausing, rollover dropping occurrences, same-week moves, and draft → re-draft → discard → commit.
+- Checked in Chromium at iPhone size: a rule from the wizard and one from an area page, three opens on Monday giving 8 occurrences once, the tray with repeat icons, the meter before and with a draft, draft → discard → draft → commit, occurrences on their own days, "didn't fit" with a cap of 4, and the goal page's recurring section. No console errors; the Stage 1 and Step 2.1 suites still pass.
+
 ## Decisions
 
 Choices made where the brief was silent.
@@ -146,10 +156,16 @@ Choices made where the brief was silent.
 - **"Day won"** ignores drafts and missed blocks that were rescheduled (their successor counts); a dropped block means the day is not won.
 - **Moments are tapped away**, not timed out within 2 s: any tap dismisses them at once, so input is never held up (§5.19); they also leave after 6 s.
 - **The coach line on Close** is rule-based (low energy, no blocks, low focus, all done, most done, less done) until the coach arrives in Step 2.3.
+- **The draft covers the current week only** (its remaining days). Planning next week arrives with the weekly review in Step 2.3; `draftMyWeek` already takes any week.
+- **"Didn't fit" is kept for the session**, not stored: it is the result of the last run. After a reload the draft bar still shows the drafted blocks.
+- **Commit drops drafts whose start has passed** rather than turning them into instantly unresolved blocks.
+- **Occurrences have no due date**; they are tied to `occurrence_date` and their week. Generation never creates days already past, so a first open on Wednesday does not add Monday's.
+- **An occurrence the owner deleted is not recreated**, and a rule change leaves occurrences that already have a block alone.
 - **Lint-enforced layering.** `app/` and `components/` may not import `db/` or Dexie. `lib/` may not import db, repo, data, or React.
 
 ## Deviations
 
+- **Capacity meter is always the compact two-line form** (owner feedback on compactness), rather than three lines collapsing on scroll. The tray bar on Plan reads "Tray (n)" to make room for "Draft my week".
 - **Compact type scale** (owner's request at the Stage 1 exit): §6.3's Title 24, Heading 18, Body 16 became 20, 16, 15; inputs stay 16 px. The timeline scale is 1.2 px per minute.
 - **Compact sticky screen header** (owner's request after Step 1.4): every tabbed screen uses one `ScreenHeader` that sticks to the top while scrolling, so "+" and the other actions are always one tap away. It is a single 52 px row (plus the safe-area inset) with the title at 20/700 instead of §6.3's 24/700 Title style, and a one-line subtitle. Long titles wrap to two lines. Plan's arrows and week sit in the header; the goal page's back, title, and ⋯ do too, with area, dates, and Achieve just below. The Plan week strip is two lines (day and date, then the count) instead of three.
 
@@ -179,3 +195,7 @@ The owner used the app for several days. Feedback: overall it feels nice; four c
   - Finish every block one day and see the "Day won" banner.
   - Settings → Reflection → Check-ins: yesterday's entry has Edit until midnight tonight.
   - With Settings → Accessibility → Motion → Reduce Motion on, celebrations are a short fade.
+- Step 2.2 checks on the iPhone:
+  - **Export a backup first** (Settings → Data → Export backup).
+  - Add a recurring action on a goal (goal page → Recurring actions) and one on an area; this week's occurrences appear in the tray with the repeat icon.
+  - Plan → Draft my week. Drag or delete a draft block, then Commit (or Discard). Check the capacity meter before and after.

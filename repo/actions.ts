@@ -3,6 +3,7 @@ import { getDb } from "@/db";
 import { OTHER_AREA_ID } from "@/db/seed";
 import { checkActionOwner, clampEstimate, cleanTitle } from "@/lib/actions";
 import { nextOrder } from "@/lib/order";
+import { startOfWeek } from "@/lib/time";
 import type { Action, RowPatch, TableName } from "@/types";
 import { deleteAllBlocks, deleteFutureBlocks } from "./blocks";
 import { nowInstant } from "./clock";
@@ -26,7 +27,7 @@ export interface NewAction {
 type Owner = Pick<Action, "goal_id" | "area_id" | "major_move_id">;
 
 /** Validate that the owner exists and the move belongs to the goal. Throws a plain sentence. */
-async function checkOwner(owner: Owner): Promise<void> {
+export async function checkOwner(owner: Owner): Promise<void> {
   checkActionOwner(owner);
   const db = getDb();
   if (owner.goal_id) {
@@ -96,7 +97,10 @@ export async function updateAction(id: string, edit: ActionEdit): Promise<Action
     if (edit.notes !== undefined) patch.notes = edit.notes?.trim() || null;
     if (edit.estimate_pomodoros !== undefined) patch.estimate_pomodoros = clampEstimate(edit.estimate_pomodoros);
     if (edit.due_on !== undefined) patch.due_on = edit.due_on || null;
-    if (edit.planned_week !== undefined) patch.planned_week = edit.planned_week;
+    if (edit.planned_week !== undefined && edit.planned_week !== current.planned_week) {
+      if (current.occurrence_date) throw new Error("A recurring action stays in its own week.");
+      patch.planned_week = edit.planned_week;
+    }
 
     if (edit.goal_id !== undefined || edit.area_id !== undefined || edit.major_move_id !== undefined) {
       const goal_id = edit.goal_id !== undefined ? edit.goal_id : current.goal_id;
@@ -152,6 +156,8 @@ export async function deleteAction(id: string): Promise<void> {
 
 /** Put or take an action on a week list (§5.4). `weekStart` is that week's Monday, or null. */
 export async function setPlannedWeek(id: string, weekStart: string | null): Promise<void> {
+  const a = await getDb().t("actions").get(id);
+  if (a?.occurrence_date && weekStart !== startOfWeek(a.occurrence_date)) throw new Error("A recurring action stays in its own week.");
   await updateRow("actions", id, { planned_week: weekStart });
 }
 
@@ -168,13 +174,14 @@ export async function reorderActions(orderedIds: readonly string[]): Promise<voi
 /**
  * Week rollover (§5.4): every still-todo action from an earlier week's list moves to this week's.
  * Before Step 2.3 there is no weekly review, so this always applies. Safe to run on every open.
+ * Recurring occurrences never carry over: they are tied to their day and are dropped (§5.5).
  */
 export async function rolloverWeek(weekStart: string): Promise<number> {
   return writeTx(["actions"], async () => {
     const stale = (await getDb().t("actions").where("planned_week").below(weekStart).toArray()).filter(
       (a) => !a.deleted_at && a.status === "todo",
     );
-    for (const a of stale) await updateRow("actions", a.id, { planned_week: weekStart });
-    return stale.length;
+    for (const a of stale) await updateRow("actions", a.id, a.occurrence_date ? { status: "dropped" } : { planned_week: weekStart });
+    return stale.filter((a) => !a.occurrence_date).length;
   });
 }

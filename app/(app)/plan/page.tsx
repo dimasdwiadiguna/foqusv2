@@ -9,6 +9,7 @@ import { ScreenSkeleton } from "@/components/shell/AppShell";
 import { BackIcon } from "@/components/shell/icons";
 import { TimelineBoard } from "@/components/timeline/TimelineBoard";
 import { WeekStrip } from "@/components/timeline/WeekStrip";
+import { CapacityMeter } from "@/components/timeline/CapacityMeter";
 import { IconButton } from "@/components/ui/Button";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 
@@ -73,6 +74,7 @@ function Plan() {
         }
       >
         <WeekStrip date={date} today={today} onSelect={go} />
+        <CapacityMeter weekStart={startOfWeek(date)} />
       </ScreenHeader>
       <h2 className="sr-only">{formatDayHeader(date)}</h2>
       <TimelineBoard
@@ -81,6 +83,7 @@ function Plan() {
         trayOpen={trayOpen}
         onTrayOpenChange={setTrayOpen}
         onSwipeDay={(d) => go(addDays(date, d))}
+        planning={startOfWeek(date) === startOfWeek(today)}
       />
     </>
   );

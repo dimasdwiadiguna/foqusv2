@@ -44,10 +44,15 @@ export function BlockItem({
   const done = block.status === "done";
   const draft = block.status === "draft";
   const tall = height >= 34;
+  // Filled (dark text on the goal color) only for committed goal blocks.
+  const filled = isGoal && !draft;
 
-  const style: React.CSSProperties = isGoal
-    ? { background: color, color: "var(--color-bg)" }
-    : { background: "var(--color-surface)", boxShadow: `inset 2px 0 0 ${color}`, borderColor: color };
+  // Drafts (§5.11): dashed and semi-transparent in the owner's color, so they read as proposals.
+  const style: React.CSSProperties = draft
+    ? { background: `color-mix(in srgb, ${color} ${isGoal ? 28 : 12}%, transparent)`, borderColor: color, borderWidth: 2 }
+    : isGoal
+      ? { background: color, color: "var(--color-bg)" }
+      : { background: "var(--color-surface)", boxShadow: `inset 2px 0 0 ${color}`, borderColor: color };
 
   return (
     <div
@@ -63,8 +68,8 @@ export function BlockItem({
         }}
         aria-label={`${view.title}, ${view.timeLabel}${done ? ", done" : ""}${view.unresolved ? ", needs resolving" : ""}${block.off_peak ? ", off-peak" : ""}`}
         className={`relative block w-full touch-pan-y overflow-hidden rounded-block border text-left select-none [-webkit-touch-callout:none] ${
-          isGoal ? "border-transparent" : ""
-        } ${draft ? "border-dashed opacity-60" : ""} ${done ? "opacity-50" : ""} ${view.unresolved ? "!border-2 !border-danger" : ""}`}
+          isGoal && !draft ? "border-transparent" : ""
+        } ${draft ? "border-dashed" : ""} ${done ? "opacity-50" : ""} ${view.unresolved ? "!border-2 !border-danger" : ""}`}
         style={{ ...style, height }}
       >
         <span className={`flex h-full flex-col px-2 ${tall ? "py-0.5" : "justify-center"}`}>
@@ -73,7 +78,7 @@ export function BlockItem({
             <span className="truncate text-[14px] leading-4 font-semibold">{view.title}</span>
           </span>
           {tall ? (
-            <span className={`flex min-w-0 items-center gap-2 text-[12px] leading-4 ${isGoal ? "" : "text-text-muted"}`}>
+            <span className={`flex min-w-0 items-center gap-2 text-[12px] leading-4 ${filled ? "" : "text-text-muted"}`}>
               <span className="shrink-0">{view.timeLabel}</span>
               <PomodoroDots completed={block.completed_pomodoros} total={block.planned_pomodoros} decorative />
               <span className="truncate">{view.owner}</span>
@@ -81,8 +86,8 @@ export function BlockItem({
           ) : null}
         </span>
         <span className="absolute top-1 right-1 flex gap-1">
-          {draft ? <Tag isGoal={isGoal}>draft</Tag> : null}
-          {block.off_peak ? <Tag isGoal={isGoal}>off-peak</Tag> : null}
+          {draft ? <Tag isGoal={filled}>draft</Tag> : null}
+          {block.off_peak ? <Tag isGoal={filled}>off-peak</Tag> : null}
           {view.unresolved ? (
             <span aria-hidden="true" className="flex size-5 items-center justify-center rounded-full bg-danger text-caption font-bold text-bg">
               ?

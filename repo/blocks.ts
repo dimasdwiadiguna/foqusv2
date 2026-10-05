@@ -2,7 +2,7 @@
 import { getDb } from "@/db";
 import { getPlacementContext, getSettings } from "@/data/queries";
 import { checkPlacement } from "@/lib/placement";
-import { todayIn, toLocalDate } from "@/lib/time";
+import { startOfWeek, todayIn, toLocalDate } from "@/lib/time";
 import type { Block, BlockOrigin, Instant, TableName } from "@/types";
 import { nowInstant } from "./clock";
 import { createRow, softDelete, updateRow } from "./rows";
@@ -33,6 +33,10 @@ async function resolvePlacement(actionId: string, p: Placement, blockId?: string
     throw new Error(`A block holds 1 to ${max} pomodoros.`);
   }
   if (!Number.isInteger(p.bufferMinutes) || p.bufferMinutes < 0 || p.bufferMinutes > 120) throw new Error("Pick a buffer between 0 and 120 minutes.");
+  // A recurring occurrence is tied to its week (§5.5).
+  if (action.occurrence_date && startOfWeek(toLocalDate(p.start, settings.timezone)) !== startOfWeek(action.occurrence_date)) {
+    throw new Error("A recurring action can only move within its own week.");
+  }
   const result = checkPlacement({
     start: p.start,
     pomodoros: p.pomodoros,
