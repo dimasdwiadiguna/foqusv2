@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useBlocksForActions, useBlocksForDays, useDaySchedule, useNow, usePersonalBlocks, useSettings, useToday } from "@/data";
 import { actionNumbers } from "@/lib/actions";
 import { firstFreeStart, freeIntervals, TIME_OPTIONS } from "@/lib/availability";
-import { toLocalTime, weekdayOf, zonedToInstant } from "@/lib/time";
+import { todayIn, toLocalDate, toLocalTime, weekdayOf, zonedToInstant } from "@/lib/time";
 import type { Action, Settings } from "@/types";
 import { Button } from "@/components/ui/Button";
 import { controlClass } from "@/components/ui/Field";
@@ -88,6 +88,11 @@ function ScheduleForm({
     });
     const first = firstFreeStart(free, pomodoros * 30, settings.default_buffer_minutes);
     if (first !== null) suggested = toLocalTime(first, tz);
+    else if (date === todayIn(now, tz)) {
+      // No free time left today: never suggest a time that has already passed.
+      const next = toLocalTime(Math.ceil(now / (5 * 60_000)) * 5 * 60_000, tz);
+      suggested = toLocalDate(Math.ceil(now / (5 * 60_000)) * 5 * 60_000, tz) === date ? next : "23:55";
+    }
   }
   const value = time ?? suggested;
 

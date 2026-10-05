@@ -6,6 +6,7 @@ import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { FocusSettings } from "@/components/settings/FocusSettings";
 import { AreasSettings } from "@/components/settings/AreasSettings";
 import { ScheduleSettings } from "@/components/settings/ScheduleSettings";
+import { DataSettings } from "@/components/settings/DataSettings";
 
 export default function SettingsPage() {
   const settings = useSettings();
@@ -17,6 +18,7 @@ export default function SettingsPage() {
       <ScheduleSettings />
       <FocusSettings settings={settings} />
       <AreasSettings />
+      <DataSettings timeZone={settings.timezone} />
     </>
   );
 }

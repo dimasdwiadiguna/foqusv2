@@ -71,6 +71,13 @@ describe("focus sessions (§5.9)", () => {
     expect(await get("focus_sessions", s.id)).toMatchObject({ completed_pomodoros: 0, focus_seconds: 600, focus_rating: 3, state: { phase: "ended" } });
   });
 
+  it("ending with 0 pomodoros but the action done marks the block done, not scheduled", async () => {
+    const a = await addAction({ title: "A" });
+    const s = await startSession({ actionId: a.id }, at("06:00"));
+    await endSession(s.id, { actionDone: true, focusRating: null, note: null }, at("06:05"));
+    expect(await get("blocks", s.block_id!)).toMatchObject({ status: "done", completed_pomodoros: 0, ends_at: new Date(at("06:05")).toISOString() });
+  });
+
   it("ending after pomodoros marks the block done; 'needs more time' raises the estimate", async () => {
     const a = await addAction({ title: "A", estimate_pomodoros: 1 });
     const s = await startSession({ actionId: a.id }, at("06:00"));

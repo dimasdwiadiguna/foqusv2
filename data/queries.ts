@@ -24,6 +24,7 @@ import type {
 import { availabilityId, peakId } from "@/lib/ids";
 import { addDays, dayBounds, endOfWeek, weekdayOf } from "@/lib/time";
 import { completedByAction } from "@/lib/actions";
+import { BACKUP_TABLES, buildBackup, type Backup } from "@/lib/backup";
 
 export async function getRow<N extends TableName>(table: N, id: string): Promise<Tables[N] | undefined> {
   const row = await getDb().t(table).get(id);
@@ -226,4 +227,22 @@ export async function getWeekContext(today: string) {
     blocks: await getBlocksForDays(addDays(today, -1), endOfWeek(today), settings.timezone),
     windows: (w: Weekday) => ({ availability: windows.get(w)?.availability, peak: windows.get(w)?.peak }),
   };
+}
+
+// ---------------------------------------------------------------------------
+// Step 1.5: backup
+
+
+/** Every row of every table, soft-deleted rows included, as a backup file. */
+export async function getBackup(now: string): Promise<Backup> {
+  const tables = {} as Record<TableName, Record<string, unknown>[]>;
+  for (const t of BACKUP_TABLES) tables[t] = (await getDb().t(t).toArray()) as unknown as Record<string, unknown>[];
+  return buildBackup(tables, now);
+}
+
+/** Row counts per table, soft-deleted rows included. */
+export async function getRowCounts(): Promise<Record<string, number>> {
+  const out: Record<string, number> = {};
+  for (const t of BACKUP_TABLES) out[t] = await getDb().t(t).count();
+  return out;
 }
