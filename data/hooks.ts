@@ -3,7 +3,8 @@
 import { useLiveQuery } from "dexie-react-hooks";
 import { useEffect, useState } from "react";
 import { getAllRows, getRow, getSettings } from "./queries";
-import { todayIn } from "@/lib/time";
+import { startOfWeek, todayIn } from "@/lib/time";
+import * as q from "./queries";
 import type { TableName, Tables } from "@/types";
 
 /** A live row, or undefined while loading or if it does not exist. */
@@ -40,4 +41,30 @@ export function useToday(): string | undefined {
   const settings = useSettings();
   const now = useNow();
   return settings ? todayIn(now, settings.timezone) : undefined;
+}
+
+// ---------------------------------------------------------------------------
+// Step 1.2
+
+
+export const useAreas = (includeArchived = false) => useLiveQuery(() => q.getAreas(includeArchived), [includeArchived]);
+export const useSeasons = () => useLiveQuery(q.getSeasons, []);
+export const useGoalsInSeason = (seasonId: string) => useLiveQuery(() => q.getGoalsInSeason(seasonId), [seasonId]);
+export const usePlansForGoal = (goalId: string) => useLiveQuery(() => q.getPlansForGoal(goalId), [goalId]);
+export const useMajorMoves = (planId: string | undefined) =>
+  useLiveQuery(() => (planId ? q.getMajorMoves(planId) : []), [planId]);
+export const useActionsForGoal = (goalId: string) => useLiveQuery(() => q.getActionsForGoal(goalId), [goalId]);
+export const useActionsForArea = (areaId: string) => useLiveQuery(() => q.getActionsForArea(areaId), [areaId]);
+export const useCompletedByAction = () => useLiveQuery(q.getCompletedByAction, []);
+export const useOpenCountsByArea = () => useLiveQuery(q.getOpenCountsByArea, []);
+export const useActiveGoals = () => useLiveQuery(q.getActiveGoals, []);
+export const useMovesForGoal = (goalId: string | null) =>
+  useLiveQuery(() => (goalId ? q.getMovesForGoal(goalId) : []), [goalId]);
+export const useBlocksForActions = (actionIds: readonly string[]) =>
+  useLiveQuery(() => q.getBlocksForActions(actionIds), [actionIds.join(",")]);
+
+/** The Monday of the current week in the settings time zone, or undefined while loading. */
+export function useWeekStart(): string | undefined {
+  const today = useToday();
+  return today ? startOfWeek(today) : undefined;
 }

@@ -88,6 +88,26 @@ export function seasonId(year: number, quarter: Quarter): string {
   return `${year}-Q${quarter}`;
 }
 
+/** Inverse of `seasonId`. Throws on a malformed id. */
+export function parseSeasonId(id: string): { year: number; quarter: Quarter } {
+  const m = /^(\d{4})-Q([1-4])$/.exec(id);
+  if (!m) throw new Error(`Invalid season id: ${id}`);
+  return { year: Number(m[1]), quarter: Number(m[2]) as Quarter };
+}
+
+/** The season `delta` quarters after (or before, if negative) the given one. */
+export function shiftSeason(id: string, delta: number): string {
+  const { year, quarter } = parseSeasonId(id);
+  const index = year * 4 + (quarter - 1) + delta;
+  return seasonId(Math.floor(index / 4), ((index % 4) + 1) as Quarter);
+}
+
+/** The season containing a date. */
+export function seasonOfDate(date: DateString): string {
+  const { year, quarter } = quarterOf(date);
+  return seasonId(year, quarter);
+}
+
 export function quarterBounds(year: number, quarter: Quarter): { startsOn: DateString; endsOn: DateString } {
   const firstMonth = (quarter - 1) * 3 + 1;
   const startsOn = formatDate(year, firstMonth, 1);
@@ -268,6 +288,23 @@ export function formatWeekRange(date: DateString): string {
   return start.month === end.month
     ? `${start.day} – ${end.day} ${MONTH_SHORT[end.month - 1]}`
     : `${start.day} ${MONTH_SHORT[start.month - 1]} – ${end.day} ${MONTH_SHORT[end.month - 1]}`;
+}
+
+/** "30 Nov" */
+export function formatShortDate(date: DateString): string {
+  const { month, day } = parseDate(date);
+  return `${day} ${MONTH_SHORT[month - 1]}`;
+}
+
+/** "1 Oct – 31 Dec" */
+export function formatDateRange(start: DateString, end: DateString): string {
+  return `${formatShortDate(start)} – ${formatShortDate(end)}`;
+}
+
+/** "Q4 2026" */
+export function formatSeason(id: string): string {
+  const { year, quarter } = parseSeasonId(id);
+  return `Q${quarter} ${year}`;
 }
 
 /** "Q4 2026 · Week 2 of 14" */

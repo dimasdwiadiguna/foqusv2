@@ -1,4 +1,3 @@
-import "fake-indexeddb/auto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FoqusDb, getDb } from "@/db";
 import { DEFAULT_SETTINGS, ensureSeed, OTHER_AREA_ID } from "@/db/seed";
