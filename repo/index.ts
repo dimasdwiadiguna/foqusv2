@@ -28,6 +28,9 @@ export {
   deleteAction,
   setPlannedWeek,
   reorderActions,
+  rolloverWeek,
   type NewAction,
   type ActionEdit,
 } from "./actions";
+export { placeBlock, updateBlockPlacement, markBlockDone, deleteBlock, type Placement } from "./blocks";
+export { updateWindow, copyWindowToAllDays, createPersonalBlock, updatePersonalBlock, deletePersonalBlock, type PersonalBlockInput } from "./schedule";

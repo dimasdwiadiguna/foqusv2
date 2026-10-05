@@ -17,7 +17,12 @@ export {
   useActiveGoals,
   useMovesForGoal,
   useBlocksForActions,
+  useDaySchedule,
+  usePersonalBlocks,
+  useBlocksForDays,
+  useWeekList,
+  useWindows,
 } from "./hooks";
 export { useDbReady, type DbState } from "./ready";
-export { getActivePlanSpans, type GoalWithPlan } from "./queries";
+export { getActivePlanSpans, getPlacementContext, type GoalWithPlan, type TitledBlock } from "./queries";
 export { setSetupProgress, useSetupProgress } from "./goal-setup";

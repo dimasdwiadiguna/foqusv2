@@ -2,6 +2,7 @@
 
 import { useDbReady } from "@/data";
 import { QuickAddProvider } from "@/components/actions/QuickAdd";
+import { PlacementProvider } from "@/components/timeline/PlacementProvider";
 import { BottomNav } from "./BottomNav";
 
 /**
@@ -16,7 +17,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="mx-auto flex h-dvh max-w-[480px] flex-col bg-bg min-[481px]:border-x min-[481px]:border-border">
       <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-[max(env(safe-area-inset-top),16px)] pb-6">
         {db.status === "ready" ? (
-          <QuickAddProvider>{children}</QuickAddProvider>
+          <QuickAddProvider>
+            <PlacementProvider>{children}</PlacementProvider>
+          </QuickAddProvider>
         ) : db.status === "error" ? (
           <div role="alert" className="mt-16 rounded-card border border-danger bg-surface p-4">
             <p className="text-heading">Can&apos;t open your data</p>
