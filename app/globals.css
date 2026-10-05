@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+/*
+ * Theme tokens (§6.2, §6.3). Dark only. The default Tailwind palette is removed so every color in the
+ * app comes from these tokens.
+ */
+@theme {
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-black: #000;
+
+  --color-bg: #0e0f12;
+  --color-surface: #17191e;
+  --color-surface-raised: #1f2228;
+  --color-border: #2a2e36;
+  --color-text: #f2f3f5;
+  --color-text-muted: #a0a6b1;
+  --color-text-faint: #6b7280;
+  --color-accent: #ffb020;
+  --color-success: #3ddc97;
+  --color-warning: #ff8a3d;
+  --color-danger: #ff5c5c;
+  --color-external: #3a3f4a;
+
+  /* Area palette (8) */
+  --color-area-blue: #5b8def;
+  --color-area-green: #3ddc97;
+  --color-area-violet: #b07cff;
+  --color-area-pink: #ff7aa2;
+  --color-area-teal: #4dd0e1;
+  --color-area-yellow: #ffd166;
+  --color-area-coral: #ff8a65;
+  --color-area-grey: #9aa3b2;
+
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --text-timer: 88px;
+  --text-timer--line-height: 1;
+  --text-timer--font-weight: 600;
+  --text-title: 24px;
+  --text-title--line-height: 1.25;
+  --text-title--font-weight: 700;
+  --text-heading: 18px;
+  --text-heading--line-height: 1.33;
+  --text-heading--font-weight: 600;
+  --text-body: 16px;
+  --text-body--line-height: 1.5;
+  --text-body--font-weight: 400;
+  --text-caption: 13px;
+  --text-caption--line-height: 1.38;
+  --text-caption--font-weight: 500;
+
+  --radius-card: 12px;
+  --radius-block: 8px;
+  --radius-sheet: 20px;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    background-color: var(--color-bg);
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    /* Numbers never shift width (§6.3). */
+    font-variant-numeric: tabular-nums;
+    overscroll-behavior: none;
+  }
+
+  /* 16 px minimum on inputs prevents iOS zoom on focus (§6.3, §6.10). */
+  input,
+  select,
+  textarea,
+  button {
+    font: inherit;
+    color: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
