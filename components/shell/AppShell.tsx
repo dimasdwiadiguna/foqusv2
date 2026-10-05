@@ -16,7 +16,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="mx-auto flex h-dvh max-w-[480px] flex-col bg-bg min-[481px]:border-x min-[481px]:border-border">
-      <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-[max(env(safe-area-inset-top),16px)] pb-6">
+      <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-6">
         {db.status === "ready" ? (
           <QuickAddProvider>
             <PlacementProvider>
@@ -39,7 +39,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
 export function ScreenSkeleton() {
   return (
-    <div aria-busy="true" aria-label="Loading" className="animate-pulse">
+    <div aria-busy="true" aria-label="Loading" className="animate-pulse pt-[max(env(safe-area-inset-top),16px)]">
       <div className="h-7 w-32 rounded-block bg-surface" />
       <div className="mt-2 h-4 w-48 rounded-block bg-surface" />
       <div className="mt-6 h-28 rounded-card bg-surface" />

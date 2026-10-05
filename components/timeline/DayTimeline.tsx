@@ -12,6 +12,7 @@ import { BlockItem, type BlockView } from "./BlockItem";
 import { DAY_MINUTES, EDGE_PX, GUTTER_PX, MINUTE_PX } from "./geometry";
 import { usePlacement } from "./PlacementProvider";
 import { scrollParent, type Point } from "./useDragGesture";
+import { headerCover } from "@/components/ui/ScreenHeader";
 
 export interface TimelineHandle {
   /** The start (epoch ms) a `pomodoros`-long block dropped at `p` would get, or null if `p` is off the timeline. */
@@ -137,7 +138,7 @@ export function DayTimeline({
     if (!el || !container) return;
     const target = isToday ? toMin(now) - 60 : Math.min(toMin(windowSpan(date, schedule.availability, tz)?.start ?? dayStart + 8 * 60 * MINUTE), views[0]?.startMin ?? DAY_MINUTES) - 30;
     const offset = el.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop;
-    container.scrollTop = Math.max(0, offset + Math.max(0, target) * MINUTE_PX - 16);
+    container.scrollTop = Math.max(0, offset + Math.max(0, target) * MINUTE_PX - 16 - headerCover(container));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only on a new day or once data arrives
   }, [date, tz, Boolean(schedule)]);
 
@@ -151,7 +152,8 @@ export function DayTimeline({
       const container = scrollParent(track.current);
       if (p && container) {
         const r = container.getBoundingClientRect();
-        const speed = p.y < r.top + EDGE_PX ? -10 : p.y > r.bottom - EDGE_PX * 2 ? 10 : 0;
+        const top = r.top + headerCover(container);
+        const speed = p.y < top + EDGE_PX ? -10 : p.y > r.bottom - EDGE_PX * 2 ? 10 : 0;
         if (speed) {
           container.scrollTop += speed;
           recompute.current(p);

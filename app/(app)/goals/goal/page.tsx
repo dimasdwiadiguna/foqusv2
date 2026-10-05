@@ -25,7 +25,7 @@ import { useQuickAdd } from "@/components/actions/QuickAdd";
 import { celebrate } from "@/components/celebration/celebrate";
 import { ScreenSkeleton } from "@/components/shell/AppShell";
 import { MoreIcon } from "@/components/shell/icons";
-import { BackLink } from "@/components/ui/BackLink";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { Button, IconButton } from "@/components/ui/Button";
 import { ConfirmSheet } from "@/components/ui/ConfirmSheet";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -53,7 +53,7 @@ function GoalDetail() {
   if (!goal) {
     return (
       <>
-        <BackLink href="/goals" label="Goals" />
+        <ScreenHeader back={{ href: "/goals", label: "Goals" }} title="Goal" />
         <EmptyState title="Goal not found" body="It may have been deleted." />
       </>
     );
@@ -92,34 +92,35 @@ function GoalBody({ goal, plan, readOnly }: { goal: Goal; plan: SeasonPlan; read
 
   return (
     <>
-      <BackLink href={backHref} label="Goals" />
-
-      {/* 1. Header */}
-      <header className="mb-5">
-        <div className="flex items-start justify-between gap-2">
-          <h1 className="min-w-0 text-title">{goal.title}</h1>
-          {!readOnly ? (
-            <IconButton label="More goal options" onClick={() => setMenu(true)} className="-mr-2">
+      {/* 1. Header: compact and sticky; the full title, area, and dates follow it */}
+      <ScreenHeader
+        back={{ href: backHref, label: "Goals" }}
+        title={goal.title}
+        subtitle={formatSeason(plan.season_id)}
+        actions={
+          !readOnly ? (
+            <IconButton label="More goal options" onClick={() => setMenu(true)}>
               <MoreIcon className="size-6" />
             </IconButton>
-          ) : null}
-        </div>
-        <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-caption text-text-muted">
+          ) : null
+        }
+      />
+      <section aria-label="Goal" className="mb-4 flex items-start gap-3">
+        <p className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1 text-caption text-text-muted">
           <span className="inline-flex items-center gap-1.5">
             <span aria-hidden="true" className="size-2.5 rounded-full" style={{ background: color }} />
             {area ? area.name : "No area"}
           </span>
           <span>{formatDateRange(plan.starts_on, plan.ends_on)}</span>
-          <span>{formatSeason(plan.season_id)}</span>
           {goal.status === "achieved" ? <span className="text-success">Achieved</span> : null}
           {goal.status === "dropped" ? <span>Dropped{goal.drop_reason ? ` · ${goal.drop_reason}` : ""}</span> : null}
         </p>
         {!readOnly ? (
-          <Button variant="primary" className="mt-4" onClick={() => setConfirm("achieve")}>
+          <Button variant="primary" className="shrink-0" onClick={() => setConfirm("achieve")}>
             Achieve
           </Button>
         ) : null}
-      </header>
+      </section>
 
       {/* 2. Outcome and metric */}
       <section aria-labelledby="outcome" className="mb-4 rounded-card border border-border bg-surface p-4">
