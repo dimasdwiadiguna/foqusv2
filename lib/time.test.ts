@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   addDays,
+  formatDateRange,
+  formatSeason,
+  formatShortDate,
+  parseSeasonId,
+  seasonOfDate,
+  shiftSeason,
   dayBounds,
   diffDays,
   endOfWeek,
@@ -160,5 +166,22 @@ describe("display", () => {
   it("formats a week's range", () => {
     expect(formatWeekRange("2026-10-07")).toBe("5 – 11 Oct");
     expect(formatWeekRange("2026-10-01")).toBe("28 Sep – 4 Oct");
+  });
+});
+
+describe("season ids", () => {
+  it("parses, shifts, and finds seasons", () => {
+    expect(parseSeasonId("2026-Q4")).toEqual({ year: 2026, quarter: 4 });
+    expect(() => parseSeasonId("2026-Q5")).toThrow();
+    expect(shiftSeason("2026-Q4", 1)).toBe("2027-Q1");
+    expect(shiftSeason("2026-Q1", -1)).toBe("2025-Q4");
+    expect(shiftSeason("2026-Q2", 6)).toBe("2027-Q4");
+    expect(seasonOfDate("2026-10-05")).toBe("2026-Q4");
+  });
+
+  it("formats seasons and short dates", () => {
+    expect(formatSeason("2026-Q4")).toBe("Q4 2026");
+    expect(formatShortDate("2026-11-30")).toBe("30 Nov");
+    expect(formatDateRange("2026-10-01", "2026-12-31")).toBe("1 Oct – 31 Dec");
   });
 });

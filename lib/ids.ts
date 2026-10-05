@@ -1,0 +1,11 @@
+/** Deterministic ids (§4.1). Rows unique per user use these so two devices never create duplicates. */
+import type { Weekday } from "@/types";
+
+export const SETTINGS_ID = "settings";
+export const COMPASS_ID = "compass";
+export const OTHER_AREA_ID = "area-other";
+
+export const availabilityId = (weekday: Weekday) => `avail-${weekday}`;
+export const peakId = (weekday: Weekday) => `peak-${weekday}`;
+/** `<goal_id>:<season_id>` */
+export const seasonPlanId = (goalId: string, seasonId: string) => `${goalId}:${seasonId}`;

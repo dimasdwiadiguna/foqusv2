@@ -16,8 +16,10 @@ FOQUS is a personal, mobile-first PWA for one owner on an iPhone. It connects qu
 - `db/` — Dexie database, schema, seeding. Only `db/`, `repo/`, `data/` may import it.
 - `repo/` — the only code that writes. `createRow`, `updateRow`, `softDelete`, plus domain functions.
 - `data/` — read queries and live hooks (`useSettings`, `useRow`, `useRows`, `useToday`, `useNow`).
-- `lib/` — pure logic with unit tests next to it (`*.test.ts`). No db, repo, data, or React.
-- `app/(app)/<screen>/` — screens (client components). `components/` — UI pieces.
+- `lib/` — pure logic with unit tests next to it (`*.test.ts`). No db, repo, data, or React. Deterministic ids live in `lib/ids.ts`.
+- `test/` — Vitest setup (fake IndexedDB) and `freshDb()` for repo tests.
+- `app/(app)/<screen>/` — tabbed screens; `app/(flows)/` — full-screen flows (wizard). Detail pages use query params (`/goals/goal?id=`) so every route stays static.
+- `components/` — UI pieces. `ui/Sheet`, `ui/Sortable`, `ui/SwipeRow` are the shared interaction primitives; `actions/QuickAdd` is global (`useQuickAdd()`); `celebration/celebrate`.
 
 ## Conventions (BRIEF §3.2, §3.3)
 

@@ -7,13 +7,12 @@ import type { Area, AvailabilityWindow, Instant, PeakWindow, RowMeta, Settings, 
 import type { FoqusDb } from "./index";
 import { newMeta } from "./meta";
 
-export const SETTINGS_ID = "settings";
-export const OTHER_AREA_ID = "area-other";
+import { availabilityId, OTHER_AREA_ID, peakId, SETTINGS_ID } from "@/lib/ids";
+
+export { OTHER_AREA_ID, SETTINGS_ID, availabilityId, peakId };
 export const OTHER_AREA_COLOR = "#9AA3B2";
 export const WEEKDAYS: Weekday[] = [1, 2, 3, 4, 5, 6, 7];
 
-export const availabilityId = (weekday: Weekday) => `avail-${weekday}`;
-export const peakId = (weekday: Weekday) => `peak-${weekday}`;
 
 export const DEFAULT_SETTINGS = {
   timezone: "Asia/Jakarta",
