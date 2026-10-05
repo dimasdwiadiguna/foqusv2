@@ -33,6 +33,8 @@ export {
   getBlocksForDays,
   getRow,
   getWeekContext,
+  getBackup,
+  getRowCounts,
   type GoalWithPlan,
   type TitledBlock,
 } from "./queries";

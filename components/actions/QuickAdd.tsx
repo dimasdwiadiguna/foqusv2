@@ -98,7 +98,9 @@ function QuickAddSheet({ preset, onClose }: { preset: QuickAddPreset | null; onC
     }
   };
 
-  const chip = "inline-flex min-h-11 items-center rounded-full border border-border bg-surface-raised px-3 text-caption";
+  // Chip shape without a font size: form controls inside must stay at 16 px or iOS zooms on focus.
+  const chipShape = "inline-flex min-h-11 items-center rounded-full border border-border bg-surface-raised px-3";
+  const chip = `${chipShape} text-caption`;
 
   return (
     <Sheet
@@ -147,7 +149,7 @@ function QuickAddSheet({ preset, onClose }: { preset: QuickAddPreset | null; onC
           </p>
         ) : null}
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <OwnerSelect aria-label="Goal or area" value={owner} onChange={setOwner} className={`${chip} max-w-48 truncate`} />
+          <OwnerSelect aria-label="Goal or area" value={owner} onChange={setOwner} className={`${chipShape} max-w-48 truncate text-body`} />
           <span className={`${chip} px-1`}>
             <EstimateStepper value={estimate} onChange={setEstimate} compact />
           </span>
@@ -158,7 +160,7 @@ function QuickAddSheet({ preset, onClose }: { preset: QuickAddPreset | null; onC
               aria-label="Due date"
               value={due}
               onChange={(e) => setDue(e.target.value)}
-              className="absolute inset-0 opacity-0"
+              className="absolute inset-0 text-body opacity-0"
             />
           </label>
           <button type="button" aria-pressed={thisWeek} onClick={() => setThisWeek((v) => !v)} className={`${chip} ${thisWeek ? "border-accent text-accent" : ""}`}>

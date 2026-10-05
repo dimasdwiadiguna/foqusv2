@@ -206,7 +206,8 @@ export async function endSession(id: string, input: EndInput, nowMs = Date.parse
 
     const block = s.block_id ? await getDb().t("blocks").get(s.block_id) : undefined;
     if (block && !block.deleted_at) {
-      if (completed > 0) {
+      // Pomodoros were completed, or the action got finished anyway: the block is done.
+      if (completed > 0 || input.actionDone) {
         // A session that ends early frees the rest of its slot: the done block ends when the
         // session did, so the next session can start right away.
         const endedAt = Math.floor(nowMs / MINUTE) * MINUTE; // the same minute a new session would start

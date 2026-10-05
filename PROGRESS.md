@@ -9,9 +9,9 @@ Spec and plan: `BRIEF.md` (the brief's own instructions call it `FOQUS-BUILD-BRI
 | 1.1 Foundation | Done; owner checked |
 | 1.2 Areas, goals, and actions | Done |
 | 1.3 Time blocking | Done |
-| 1.4 Focus and the resolver | Done; waiting for the owner to check on the iPhone |
-| 1.5 Install, offline shell, and backup | Next |
-| 2.1 Daily loop | Not started |
+| 1.4 Focus and the resolver | Done |
+| 1.5 Install, offline shell, and backup | Done; waiting for the owner to check on the iPhone |
+| 2.1 Daily loop | Next, after the Stage 1 exit conversation |
 | 2.2 Planning help | Not started |
 | 2.3 Reviews and coach | Not started |
 | 2.4 Completion | Not started |
@@ -65,6 +65,15 @@ Spec and plan: `BRIEF.md` (the brief's own instructions call it `FOQUS-BUILD-BRI
 - The resolver: full-screen, one card per unresolved block, oldest first, on open and on return to the foreground; Done (count, then "is the action done?"), Reschedule (next free slot, pick a time, back to tray), Drop (or drop the action too); "Later". A count badge on the Today tab and a prompt card on Today.
 - Checked in Chromium at iPhone size with a controlled clock: reload mid-phase lands on the right second (14:48 after 10:12), pause holds through 5 minutes, all three starts, capture, notes, both end paths, the away check, the overlap question, and every resolver outcome with `reschedule_count` and the successor link.
 
+### Step 1.5 · Install, offline shell, and backup — what exists
+
+- Manifest (`app/manifest.ts`): standalone, portrait, start at `/today`, dark theme and background colors, 192/512/maskable icons. Apple touch icon, `apple-mobile-web-app-capable` with a black-translucent status bar, and splash screens for ten iPhone sizes. Icons and splashes are the FOQUS wordmark (the O as an accent ring) on the background color, rendered by `scripts/make-icons.cjs` and committed.
+- Service worker at `/sw.js` (a static route with a per-build version). On install it caches every screen's HTML and every static file those screens use, following lazy chunk references; navigations are served from that versioned cache, so the installed app opens and runs with no network. A new deploy shows "A new version is ready · Reload to update"; nothing reloads on its own.
+- Persistent storage requested on every open.
+- Settings → Data: Export backup (share sheet on a phone, so "Save to Files" works; a download elsewhere), Import backup (validated with a plain-sentence error and no changes on failure; a confirmation naming the backup's date and row count; replaces everything and soft-deletes rows not in the file), storage use and whether it is persistent, and the line that data lives only on this device until an account is connected.
+- iPhone pass: every form control is at 16 px (two quick add chips were 13 px and are fixed); safe areas, dynamic viewport height, and overscroll were already in place.
+- Checked in Chromium at iPhone size: offline reload and every screen by tab and by direct load, the goal wizard, quick add, scheduling, a focus session, and confetti all work with the network off; export then import into a fresh profile matches the row counts of all 20 tables; an invalid file is rejected and changes nothing; a rebuild shows "Reload to update" and switches to the new version.
+
 ## Decisions
 
 Choices made where the brief was silent.
@@ -115,6 +124,12 @@ Choices made where the brief was silent.
 - **The resolver stays away while a session runs**, and the app underneath it is `inert`.
 - **Sheets always call the latest `onClose`** (a stale Escape handler had saved old scratchpad text).
 - **Compound repo operations use every table** in their transaction scope (`ALL_TABLES`), since nested repo calls must stay inside it.
+- **Service worker by hand**, not a library: Serwist and next-pwa hook into webpack, and Next 16 builds with Turbopack. The worker's precache list is discovered at install time from the screens' HTML and chunks, so no build-time manifest is needed.
+- **HTML is never refreshed in the background**: a navigation is served from the cache of the worker's own build, so HTML and its chunks always match. New versions arrive only through "Reload to update".
+- **Client-side route payloads (RSC) are not cached**: offline, Next.js falls back to a full page load, which the cache serves.
+- **Backup format** `foqus-backup` version 1: every row of every table, soft-deleted rows included, without the local `_dirty` flag. Imported rows are stamped as fresh changes (`updated_at` now, `_dirty` 1) so a Stage 3 first sync uploads the replacement.
+- **Ending a session with the action done but 0 pomodoros** marks its block done (with 0) instead of returning it to scheduled, so no orphan block for a finished action waits in the resolver.
+- **Schedule sheet with no free time left today** suggests the next 5-minute mark after now, never a time that has passed.
 - **Lint-enforced layering.** `app/` and `components/` may not import `db/` or Dexie. `lib/` may not import db, repo, data, or React.
 
 ## Deviations
@@ -128,7 +143,8 @@ Choices made where the brief was silent.
 
 ## Owner tasks
 
-- Before Step 1.5, on the iPhone (the brief's owner checks):
-  - Start a 1-pomodoro session, lock the phone for ten minutes, unlock, and confirm the timer is right.
-  - Run a full pomodoro with the app open: the screen should stay awake (iOS 18.4 or later in the installed app; in a Safari tab the hint about Auto-Lock may show) and the phase change should be visible.
-  - Leave a block unresolved, reopen the app, and try the resolver.
+- Stage 1 owner checks (Step 1.5):
+  - Add the app to the home screen from Safari (Share → Add to Home Screen) **before** entering real data. Storage for the installed app is separate from Safari's, so anything entered in a Safari tab will not appear there.
+  - Open the installed app once online, then open it in airplane mode.
+  - Settings → Data → Export backup, and confirm the file saves (choose "Save to Files").
+- Stage 1 exit: use the app for real for a few days, then tell Claude what feels wrong before Stage 2 starts.

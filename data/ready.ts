@@ -16,6 +16,8 @@ function openOnce(): Promise<void> {
     await ensureSeed(getDb(), now);
     const settings = await getSettings();
     if (settings) await rolloverWeek(startOfWeek(todayIn(now, settings.timezone)));
+    // Ask the browser not to evict this data under storage pressure (Step 1.5).
+    void navigator.storage?.persist?.().catch(() => false);
   })();
   return opening;
 }
