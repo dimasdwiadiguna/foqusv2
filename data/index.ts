@@ -58,3 +58,4 @@ export {
   type TitledBlock,
 } from "./queries";
 export { setSetupProgress, useSetupProgress } from "./goal-setup";
+export { readFirstRun, setFirstRun, firstRunOnOpen } from "./first-run";

@@ -126,13 +126,13 @@ export function Sheet({
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="absolute inset-x-0 bottom-0 mx-auto flex max-h-[90%] max-w-[480px] flex-col rounded-t-sheet border-t border-border bg-surface outline-none"
+        className="absolute inset-x-0 bottom-0 mx-auto flex max-h-[90%] max-w-[480px] flex-col rounded-t-sheet border-t border-border bg-surface outline-none lg:inset-x-auto lg:top-1/2 lg:bottom-auto lg:left-1/2 lg:max-h-[85vh] lg:w-[480px] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:rounded-sheet lg:border"
         style={{ transform: dragY ? `translateY(${dragY}px)` : undefined, pointerEvents: settling ? "none" : undefined }}
         onPointerDownCapture={keepTyping}
         onMouseDownCapture={keepTyping}
       >
         <div className="shrink-0 touch-none px-4 pt-2 pb-1" {...grab}>
-          <div className="mx-auto h-1.5 w-10 rounded-full bg-border" aria-hidden="true" />
+          <div className="mx-auto h-1.5 w-10 rounded-full bg-border lg:hidden" aria-hidden="true" />
           <h2 id={titleId} className="mt-3 text-heading">
             {title}
           </h2>

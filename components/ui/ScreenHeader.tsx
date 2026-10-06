@@ -26,7 +26,7 @@ export function ScreenHeader({
   return (
     <header
       data-screen-header=""
-      className="sticky top-0 z-20 -mx-4 mb-2 border-b border-border/60 bg-bg px-4 pt-[max(env(safe-area-inset-top),4px)]"
+      className="sticky top-0 z-20 -mx-4 mb-2 border-b border-border/60 bg-bg px-4 pt-[max(env(safe-area-inset-top),4px)] lg:-mx-6 lg:px-6"
     >
       <div className="flex min-h-12 items-center gap-1">
         {back ? (

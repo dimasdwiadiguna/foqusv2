@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useActiveSession, useInsights, useNow, useQuarterlyDue, useReviewDue, useSettings, useUnresolvedBlocks } from "@/data";
 import { formatClock, timerAt } from "@/lib/timer";
-import { CoachIcon, FocusIcon, GoalsIcon, PlanIcon, TodayIcon } from "./icons";
+import { CoachIcon, FocusIcon, GoalsIcon, PlanIcon, SettingsIcon, TodayIcon } from "./icons";
 
 /**
  * Bottom navigation (§6.6). Focus sits in the center, raised; while a session runs it pulses and
@@ -19,15 +19,63 @@ const TABS = [
   { href: "/coach", label: "Coach", Icon: CoachIcon },
 ] as const;
 
-export function BottomNav() {
+function useNavState() {
   const pathname = usePathname();
   const unresolved = useUnresolvedBlocks()?.length ?? 0;
   const running = useRunningLabel();
   const insights = useInsights()?.length ?? 0;
   const weekly = useReviewDue();
   const quarterly = useQuarterlyDue();
-  const reviewDue = Boolean(weekly) || Boolean(quarterly);
-  const coachDot = insights > 0 || reviewDue;
+  const coachDot = insights > 0 || Boolean(weekly) || Boolean(quarterly);
+  return { pathname, unresolved, running, coachDot };
+}
+
+/**
+ * The desktop sidebar (§6.11): the same destinations, with Focus as a button at the top and
+ * Settings at the bottom.
+ */
+export function SideNav() {
+  const { pathname, unresolved, running, coachDot } = useNavState();
+  const item = (href: string, label: string, Icon: (p: { className?: string }) => React.ReactNode, extra?: React.ReactNode) => {
+    const active = pathname === href || pathname.startsWith(`${href}/`);
+    return (
+      <li key={href}>
+        <Link
+          href={href}
+          aria-current={active ? "page" : undefined}
+          className={`flex min-h-11 items-center gap-3 rounded-full px-3 ${active ? "bg-surface-raised text-accent" : "text-text-muted hover:text-text"}`}
+        >
+          <Icon className="size-5" />
+          <span className="flex-1">{label}</span>
+          {extra}
+        </Link>
+      </li>
+    );
+  };
+  return (
+    <nav aria-label="Main" className="flex w-52 shrink-0 flex-col gap-4 border-r border-border bg-surface px-3 py-4">
+      <Link
+        href="/focus"
+        aria-label={running ? `Focus, ${running} left` : "Focus"}
+        className={`flex min-h-12 items-center justify-center gap-2 rounded-full font-semibold ${running ? "animate-pulse bg-accent text-bg" : "bg-accent text-bg"}`}
+      >
+        <FocusIcon className="size-5" />
+        {running ? <span className="tabular-nums">{running}</span> : "Focus"}
+      </Link>
+      <ul className="flex flex-col gap-1">
+        {item("/today", "Today", TodayIcon, unresolved ? <span className="min-w-5 rounded-full bg-danger px-1 text-center text-[11px] leading-5 font-bold text-bg" aria-label={`${unresolved} unresolved`}>{unresolved}</span> : null)}
+        {item("/plan", "Plan", PlanIcon)}
+        {item("/goals", "Goals", GoalsIcon)}
+        {item("/coach", "Coach", CoachIcon, coachDot ? <span className="size-2.5 rounded-full bg-accent" aria-label="Something new" /> : null)}
+      </ul>
+      <ul className="mt-auto">{item("/settings", "Settings", SettingsIcon)}</ul>
+      <p className="px-3 text-[12px] leading-4 text-text-muted">Keys: N add · F focus · T today · ← → day</p>
+    </nav>
+  );
+}
+
+export function BottomNav() {
+  const { pathname, unresolved, running, coachDot } = useNavState();
 
   return (
     <nav aria-label="Main" className="shrink-0 border-t border-border bg-surface pb-[env(safe-area-inset-bottom)]">

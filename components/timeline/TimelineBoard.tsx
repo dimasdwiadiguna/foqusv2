@@ -91,7 +91,7 @@ export function TimelineBoard({
 }
 
 /** "Add block here" (§6.8): pick an action for the tapped time. This week's tray first, then other open actions. */
-function AddBlockSheet({
+export function AddBlockSheet({
   start,
   weekStart,
   onClose,

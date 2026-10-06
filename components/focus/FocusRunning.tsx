@@ -8,6 +8,8 @@ import { MINUTE, overlaps } from "@/lib/intervals";
 import { formatClock, timerAt, type TimerConfig, type TimerView } from "@/lib/timer";
 import { addDays, toLocalDate, toLocalTime } from "@/lib/time";
 import { addAction, addSessionPomodoro, saveScratchpad, sessionStep } from "@/repo";
+import { shortcutFor } from "@/lib/shortcuts";
+import { keyInput } from "@/components/shell/KeyboardShortcuts";
 import type { FocusSession, Settings } from "@/types";
 import { prefersReducedMotion } from "@/components/celebration/celebrate";
 import { ChevronDownIcon } from "@/components/shell/icons";
@@ -59,6 +61,23 @@ function Running({ session, settings }: { session: FocusSession; settings: Setti
     }
     flash.current?.animate([{ opacity: 0 }, { opacity: 0.18 }, { opacity: 0 }], { duration: prefersReducedMotion() ? 300 : 700 });
   }, [t.phase]);
+
+  // Space pauses or resumes (§6.11).
+  const phaseRef = useRef(t.phase);
+  useEffect(() => {
+    phaseRef.current = t.phase;
+  });
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (shortcutFor(keyInput(e), "focus") !== "pauseResume") return;
+      e.preventDefault();
+      const phase = phaseRef.current;
+      if (phase === "paused") void sessionStep(session.id, "resume");
+      else if (phase === "focus" || phase === "break") void sessionStep(session.id, "pause");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [session.id]);
 
   const say = (m: string) => {
     setToast(m);
