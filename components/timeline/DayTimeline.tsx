@@ -38,7 +38,13 @@ export function DayTimeline({
   onAddAt,
   onSwipeDay,
   handleRef,
+  gutter = true,
+  autoScroll = true,
 }: {
+  /** Hour labels on the left. Off for the desktop week's columns, which share one gutter. */
+  gutter?: boolean;
+  /** Scroll the page to now (or the day's start) when the day opens. */
+  autoScroll?: boolean;
   date: string;
   onAddAt?: (start: number) => void;
   onSwipeDay?: (delta: 1 | -1) => void;
@@ -75,7 +81,7 @@ export function DayTimeline({
 
   const startMinAt = (p: Point, pomodoros: number): number | null => {
     const r = track.current?.getBoundingClientRect();
-    if (!r || p.x < r.left - GUTTER_PX || p.x > r.right || p.y < r.top || p.y > r.bottom) return null;
+    if (!r || p.x < r.left - (gutter ? GUTTER_PX : 0) || p.x > r.right || p.y < r.top || p.y > r.bottom) return null;
     const len = pomodoros * POMODORO_MINUTES;
     return clamp(snapMinutes(pointerMinute(p) - len / 2), 0, DAY_MINUTES - len);
   };
@@ -132,7 +138,7 @@ export function DayTimeline({
 
   // Scroll to now (today) or to the start of the day's available hours, when the day changes.
   useEffect(() => {
-    if (!tz || !schedule) return;
+    if (!tz || !schedule || !autoScroll) return;
     const el = track.current;
     const container = scrollParent(el);
     if (!el || !container) return;
@@ -239,7 +245,7 @@ export function DayTimeline({
       {/* Hour labels and lines */}
       {Array.from({ length: 24 }, (_, h) => (
         <div key={h} aria-hidden="true" className="absolute inset-x-0 border-t border-border/60" style={{ top: h * 60 * MINUTE_PX }}>
-          <span className="absolute -top-2.5 left-0 w-10 bg-bg pr-1 text-right text-[12px] text-text-muted">{`${String(h).padStart(2, "0")}:00`}</span>
+          {gutter ? <span className="absolute -top-2.5 left-0 w-10 bg-bg pr-1 text-right text-[12px] text-text-muted">{`${String(h).padStart(2, "0")}:00`}</span> : null}
         </div>
       ))}
 
@@ -248,7 +254,7 @@ export function DayTimeline({
         role="group"
         aria-label={`Timeline for ${formatDayHeader(date)}. Tap empty time to add a block.`}
         className="absolute inset-y-0 right-0 touch-pan-y"
-        style={{ left: GUTTER_PX }}
+        style={{ left: gutter ? GUTTER_PX : 0 }}
         onClick={(e) => {
           if (!onAddAt || (e.target as HTMLElement).closest("button")) return;
           const min = clamp(snapMinutes(pointerMinute({ x: e.clientX, y: e.clientY })), 0, DAY_MINUTES - POMODORO_MINUTES);

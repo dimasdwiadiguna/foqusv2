@@ -23,6 +23,8 @@ import { achieveGoal, addMajorMove, deleteGoal, deleteMajorMove, dropGoal, setMa
 import type { Action, Goal, MajorMove, SeasonPlan } from "@/types";
 import { ActionList } from "@/components/actions/ActionList";
 import { RuleList } from "@/components/recurrence/RuleList";
+import { GoalsList } from "@/components/goals/GoalsList";
+import { useIsDesktop } from "@/components/shell/useIsDesktop";
 import { StrengthCard } from "@/components/coach/Strength";
 import { useQuickAdd } from "@/components/actions/QuickAdd";
 import { showMoment } from "@/components/celebration/Moments";
@@ -51,6 +53,8 @@ function GoalDetail() {
   const goal = useRow("goals", id);
   const plans = usePlansForGoal(id);
   const today = useToday();
+  const desktop = useIsDesktop();
+  const router = useRouter();
 
   if (!today || plans === undefined) return <ScreenSkeleton />;
   if (!goal) {
@@ -67,7 +71,17 @@ function GoalDetail() {
     plans.find((p) => p.season_id === current) ??
     plans[plans.length - 1];
   if (!plan) return <EmptyState title="No plan yet" body="This goal has no season plan." />;
-  return <GoalBody goal={goal} plan={plan} readOnly={goal.status !== "active" || plan.season_id < current} />;
+  const body = <GoalBody goal={goal} plan={plan} readOnly={goal.status !== "active" || plan.season_id < current} />;
+  if (!desktop) return body;
+  // Desktop (§6.11): the season's goal list on the left, this goal on the right.
+  return (
+    <div className="grid grid-cols-[360px_minmax(0,1fr)] gap-6">
+      <div className="min-w-0">
+        <GoalsList season={plan.season_id} current={current} header={false} onSeason={(id) => router.push(`/goals?season=${id}`)} />
+      </div>
+      <div className="min-w-0">{body}</div>
+    </div>
+  );
 }
 
 function GoalBody({ goal, plan, readOnly }: { goal: Goal; plan: SeasonPlan; readOnly: boolean }) {

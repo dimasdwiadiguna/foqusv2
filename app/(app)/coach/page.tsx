@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
-import { useCompass, useInsights, useReview, useReviewDue, useStrengths, useToday } from "@/data";
+import { useCompass, useInsights, useQuarterlyDue, useReview, useReviewDue, useStrengths, useToday } from "@/data";
 import { principleFor } from "@/lib/coach";
 import { reviewWeekFor } from "@/lib/review";
-import { weekdayOf } from "@/lib/time";
+import { formatSeason, weekdayOf } from "@/lib/time";
 import { dismissInsight, refreshCoach } from "@/repo";
 import { DailyBrief } from "@/components/coach/DailyBrief";
 import { ScoreBar, StrengthBadge } from "@/components/coach/Strength";
@@ -21,6 +21,7 @@ export default function CoachPage() {
   const strengths = useStrengths();
   const due = useReviewDue();
   const compass = useCompass();
+  const quarterly = useQuarterlyDue();
   // The week whose review this week is about (done or not), for the entry row.
   const week = today ? (due ?? reviewWeekFor(today)) : undefined;
   const review = useReview(week);
@@ -96,6 +97,7 @@ export default function CoachPage() {
 
       <nav aria-label="Reflection" className="divide-y divide-border rounded-card border border-border bg-surface">
         <Row href={due ? `/review?week=${due}` : review?.completed_at ? `/review?week=${week}` : null} label="Weekly review" detail={reviewLabel} accent={Boolean(due)} />
+        {quarterly ? <Row href={`/quarterly?season=${quarterly}`} label={`Quarterly review · ${formatSeason(quarterly)}`} detail="Start" accent /> : null}
         <Row href="/coach/reviews" label="Past reviews" />
         <Row href="/coach/checkins" label="Check-in history" />
         <Row href="/coach/compass" label="Compass" detail={compass?.vision ? undefined : "Write your vision"} />

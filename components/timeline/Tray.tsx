@@ -93,14 +93,14 @@ export function Tray({
   const drafting = planning && weekStart && drafts && drafts.length > 0;
   if (drafting) {
     return (
-      <div className="sticky -bottom-6 z-30 -mx-4 mt-3">
+      <div className="sticky -bottom-6 z-30 -mx-4 mt-3 lg:-mx-6">
         <DraftBar weekStart={weekStart} drafted={drafts.length} />
       </div>
     );
   }
 
   return (
-    <div className="sticky -bottom-6 z-30 -mx-4 mt-3">
+    <div className="sticky -bottom-6 z-30 -mx-4 mt-3 lg:-mx-6">
       {/* Hidden rather than unmounted when closed: a drag that starts here closes the tray but must keep running. */}
       <div
         id="tray-panel"
@@ -153,7 +153,7 @@ export function Tray({
   );
 }
 
-function TrayRow({
+export function TrayRow({
   item,
   date,
   drag,

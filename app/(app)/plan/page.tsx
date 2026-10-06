@@ -3,13 +3,22 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { useToday } from "@/data";
-import { addDays, formatDayHeader, formatWeekRange, parseDate, seasonWeekNumber, startOfWeek } from "@/lib/time";
+import {
+  addDays,
+  formatDayHeader,
+  formatWeekRange,
+  parseDate,
+  seasonWeekNumber,
+  startOfWeek,
+} from "@/lib/time";
 import { QuickAddButton } from "@/components/actions/QuickAddButton";
 import { ScreenSkeleton } from "@/components/shell/AppShell";
 import { BackIcon } from "@/components/shell/icons";
 import { TimelineBoard } from "@/components/timeline/TimelineBoard";
 import { WeekStrip } from "@/components/timeline/WeekStrip";
 import { CapacityMeter } from "@/components/timeline/CapacityMeter";
+import { WeekBoard, WeekHeadings } from "@/components/timeline/WeekBoard";
+import { useIsDesktop } from "@/components/shell/useIsDesktop";
 import { IconButton } from "@/components/ui/Button";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 
@@ -37,16 +46,22 @@ function Plan() {
   const params = useSearchParams();
   const router = useRouter();
   const [trayOpen, setTrayOpen] = useState(false);
+  const desktop = useIsDesktop();
   if (!today) return <ScreenSkeleton />;
   const date = validDate(params.get("date")) ?? today;
-  const go = (d: string) => router.replace(`/plan?date=${d}`, { scroll: false });
+  const go = (d: string) =>
+    router.replace(`/plan?date=${d}`, { scroll: false });
   const { week, weeks } = seasonWeekNumber(date);
 
   return (
     <>
       <ScreenHeader
         leading={
-          <IconButton label="Previous week" className="-ml-3" onClick={() => go(addDays(date, -7))}>
+          <IconButton
+            label="Previous week"
+            className="-ml-3"
+            onClick={() => go(addDays(date, -7))}
+          >
             <BackIcon className="size-6" />
           </IconButton>
         }
@@ -57,7 +72,11 @@ function Plan() {
             {startOfWeek(date) !== startOfWeek(today) ? (
               <>
                 {" · "}
-                <button type="button" className="pointer-events-auto text-accent" onClick={() => go(today)}>
+                <button
+                  type="button"
+                  className="pointer-events-auto text-accent"
+                  onClick={() => go(today)}
+                >
                   This week
                 </button>
               </>
@@ -73,18 +92,40 @@ function Plan() {
           </>
         }
       >
-        <WeekStrip date={date} today={today} onSelect={go} />
-        <CapacityMeter weekStart={startOfWeek(date)} />
+        {desktop ? (
+          <>
+            <CapacityMeter weekStart={startOfWeek(date)} />
+            <div className="mt-2">
+              <WeekHeadings date={date} today={today} />
+            </div>
+          </>
+        ) : (
+          <>
+            <WeekStrip date={date} today={today} onSelect={go} />
+            <CapacityMeter weekStart={startOfWeek(date)} />
+          </>
+        )}
       </ScreenHeader>
-      <h2 className="sr-only">{formatDayHeader(date)}</h2>
-      <TimelineBoard
-        date={date}
-        weekStart={startOfWeek(today)}
-        trayOpen={trayOpen}
-        onTrayOpenChange={setTrayOpen}
-        onSwipeDay={(d) => go(addDays(date, d))}
-        planning={startOfWeek(date) === startOfWeek(today)}
-      />
+      <h2 className="sr-only">
+        {desktop ? formatWeekRange(date) : formatDayHeader(date)}
+      </h2>
+      {desktop ? (
+        <WeekBoard
+          date={date}
+          today={today}
+          weekStart={startOfWeek(today)}
+          planning={startOfWeek(date) === startOfWeek(today)}
+        />
+      ) : (
+        <TimelineBoard
+          date={date}
+          weekStart={startOfWeek(today)}
+          trayOpen={trayOpen}
+          onTrayOpenChange={setTrayOpen}
+          onSwipeDay={(d) => go(addDays(date, d))}
+          planning={startOfWeek(date) === startOfWeek(today)}
+        />
+      )}
     </>
   );
 }

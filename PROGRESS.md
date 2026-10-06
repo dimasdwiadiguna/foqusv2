@@ -13,9 +13,9 @@ Spec and plan: `BRIEF.md` (the brief's own instructions call it `FOQUS-BUILD-BRI
 | 1.5 Install, offline shell, and backup | Done |
 | 2.1 Daily loop | Done; owner checked |
 | 2.2 Planning help | Done; owner checked |
-| 2.3 Reviews and coach | Done; waiting for the owner to check on the iPhone |
-| 2.4 Completion | Next |
-| 3.1 Schema and login | Not started |
+| 2.3 Reviews and coach | Done; owner checked |
+| 2.4 Completion | Done; waiting for the owner (Stage 2 exit: use it through a weekly review, then feedback) |
+| 3.1 Schema and login | Next, after the Stage 2 exit conversation |
 | 3.2 Sync | Not started |
 | 3.3 Offline rules | Not started |
 | 4.1 Connect | Not started |
@@ -108,6 +108,14 @@ Spec and plan: `BRIEF.md` (the brief's own instructions call it `FOQUS-BUILD-BRI
 - Tests: plan strength reproduces each table of §5.17 and both special cases; every coach rule has a firing and a non-firing case; dismissal holds for 7 days and returns after; review availability; repo tests for Compass, resuming a review, frozen numbers after later data changes, next-week picks, coach refresh and dismissal persisting, one snapshot per week, and the missed check-in insight clearing after a check-in.
 - Checked in Chromium at iPhone size: the wizard finish strength, the Coach tab and dot, the Today review card and gear, insights and a dismissal that survives a reload, goal card and goal detail strength, Compass editing, a review left at step 3 and resumed with its notes, picks moving actions to next week, a draft committed inside the review, the done screen with confetti, past reviews, and the stored numbers unchanged after the week's data was edited. Offline, the Coach tab opens from cache. No console errors; earlier suites pass.
 
+### Step 2.4 · Completion — what exists
+
+- **Quarterly review** (`/quarterly`, §5.16): Compass (editable in place) → season numbers (pomodoros, goal share, follow-through, goals achieved, hours) → one screen per goal (Carry over, Close as achieved with the goal moment, or Drop with a reason; Next stays disabled until the goal is resolved) → season note (what worked, what to change) → next season (carried goals, "Add a goal" opens the wizard for it) → done. Decisions are saved as they are made and the screen reached is remembered, so it resumes. It cannot finish while any active goal is unresolved. Carrying over creates the next season's plan pre-filled (outcome, metric, confidence, obstacles, the new quarter's dates), moves unfinished major moves to it (open actions belong to the goal and come along), closes the old plan as `carried`, and extends recurring rules that ended with the old plan. Prompted from 7 days before the quarter ends (24 December 2026 for Q4) until done, on Today, on Coach, and as a coach insight, for seasons that had goals.
+- **First-run setup** (`/setup`): Availability (weekdays and weekend) → Peak → Personal blocks → Areas → Compass → First goal (opens the wizard). Shown only when the app has no data (no goals, actions, blocks, or check-ins); every step but availability can be skipped; leaving and reopening resumes it; once finished it never returns. An app that already has data (the owner's phone) never sees it.
+- **Desktop** (1024 px and wider): a left sidebar with Focus as a button at the top (Settings at the bottom); Plan shows the seven days as columns sharing an hour gutter, with the capacity meter and day headings above and the tray as a right-hand panel ("Draft my week" and the draft bar at its top; drag a tray item onto any day); Today has the timeline on the left and the Next card, prompts, and brief on the right; Goals has the list on the left and goal detail on the right; sheets are centered dialogs; other screens keep a readable column. Keyboard: `N` quick add, `F` focus, `T` today, `←` `→` previous or next day (in Plan; from Today they open Plan), `Space` pause or resume in Focus. Shortcuts never fire while typing or with a dialog open.
+- Tests: `lib/quarterly` (24 December with an injected date, before it, after the quarter ends, other quarters, goals to resolve, the season note), repo tests for finishing refused until every goal is resolved and for carrying over (new plan, moved moves, open action kept, rule extended, idempotent), `lib/first-run`, `lib/shortcuts`.
+- Checked in Chromium: the quarterly prompt absent on 23 Dec and present on 24 Dec, the whole review with a resume midway, carry-over landing in Q1 2027, and the prompt gone after; first-run setup on a fresh profile with resume and saved hours, peak, and a personal block; at 1280×800 the sidebar, a centered quick-add dialog, the Today and Goals two-column layouts, seven Plan columns, a tray item dragged onto Thursday, the draft in the panel, arrow keys across a week boundary, and Space pausing and resuming Focus. Every earlier suite passes (they now mark setup as done first).
+
 ## Decisions
 
 Choices made where the brief was silent.
@@ -179,6 +187,11 @@ Choices made where the brief was silent.
 - **The weekly review looks back on this week from Sunday, otherwise on last week**, and plans the week after it. It is offered only for a week that had blocks or check-ins, so a fresh install is not asked to review an empty week. If it is done late (after Monday's rollover), the pick list simply shows this week's list.
 - **Week rollover needs no special case for a completed review**: the review's picks already move ticked actions to next week and unticked ones to the backlog.
 - **The daily brief on Today sits above the timeline**, not in the sticky header, to keep the header compact.
+- **Setup and quarterly progress are device bookmarks** (`localStorage`), like the goal wizard's: the choices themselves are saved as data at each step, so losing the bookmark only loses the resume point.
+- **"No data" for first-run setup** means no goals, actions, blocks, or check-ins; a non-empty app is marked as set up on its first open, so the setup can never appear over real data.
+- **The season note is one text with two headed parts** ("What worked:", "What to change:") in `seasons.review_note`, so the data model is unchanged.
+- **Desktop layout switches in JavaScript** (`useIsDesktop`, 1024 px) rather than with CSS alone, so each screen mounts one layout and its hooks once; on a first paint the phone layout can show for a frame.
+- **Shortcuts ignore read-only fields**: the hidden input that primes the iPhone keyboard keeps focus after a sheet closes, and it must not swallow keys.
 - **Lint-enforced layering.** `app/` and `components/` may not import `db/` or Dexie. `lib/` may not import db, repo, data, or React.
 
 ## Deviations
@@ -222,3 +235,8 @@ The owner used the app for several days. Feedback: overall it feels nice; four c
   - Coach tab: read the brief and insights; dismiss one; open Compass and write your vision.
   - On Sunday, do the weekly review from the Today card, leave it midway once, and come back to it.
   - Check each goal's plan strength (Goals list and the goal page) and try its top improvement.
+- Step 2.4 checks:
+  - **Export a backup first** (gear on Today → Data → Export backup).
+  - On a computer, open the app in a wide window: sidebar, seven-day Plan, keys N, F, T, ← →, and Space in Focus.
+  - The quarterly review appears on 24 December. Do it before the quarter ends.
+- **Stage 2 exit:** use the app through at least one weekly review, then tell Claude what to change before Stage 3 (data-model changes are cheapest now, before a server schema exists).

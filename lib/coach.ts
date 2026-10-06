@@ -107,6 +107,8 @@ export interface CoachInput {
   missedCheckin: boolean;
   /** The week whose review is available and not done, or null. */
   reviewDue: DateString | null;
+  /** The season whose quarterly review is due, or null (§5.16). */
+  quarterlyDue?: string | null;
 }
 
 export function evaluateRules(input: CoachInput): Insight[] {
@@ -116,6 +118,9 @@ export function evaluateRules(input: CoachInput): Insight[] {
 
   if (input.reviewDue) {
     push({ code: "REVIEW_DUE", key: input.reviewDue, title: "Your weekly review is ready", body: "Ten minutes to look back and plan next week.", action_link: "/review", action_label: "Start the review" });
+  }
+  if (input.quarterlyDue) {
+    push({ code: "REVIEW_DUE", key: input.quarterlyDue, title: "Your quarterly review is ready", body: "Close the season: decide each goal's future and set up the next quarter.", action_link: `/quarterly?season=${input.quarterlyDue}`, action_label: "Start the review" });
   }
   if (input.missedCheckin) {
     const y = addDays(input.today, -1);

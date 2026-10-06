@@ -38,6 +38,9 @@ export {
   useCompass,
   useWeekStats,
   useReviewGoals,
+  useQuarterlyDue,
+  useSeasonStats,
+  useSeason,
 } from "./hooks";
 export { getWeekStats, type GoalStrength, type ReviewGoal, type ReviewSnapshot } from "./coach";
 export { useDbReady, type DbState } from "./ready";
@@ -55,3 +58,4 @@ export {
   type TitledBlock,
 } from "./queries";
 export { setSetupProgress, useSetupProgress } from "./goal-setup";
+export { readFirstRun, setFirstRun, firstRunOnOpen } from "./first-run";

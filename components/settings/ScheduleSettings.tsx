@@ -14,17 +14,15 @@ import { SettingsGroup } from "@/components/ui/SettingsGroup";
 import { Sheet } from "@/components/ui/Sheet";
 import { Switch } from "@/components/ui/Switch";
 
-const END_OPTIONS = [...TIME_OPTIONS.slice(1), "24:00"];
+export const END_OPTIONS = [...TIME_OPTIONS.slice(1), "24:00"];
 const DAYS: Weekday[] = [1, 2, 3, 4, 5, 6, 7];
 
 /** Settings → Schedule (§5.6, §6.7): availability and peak per weekday, and personal blocks. */
 export function ScheduleSettings() {
   const availability = useWindows("availability");
   const peak = useWindows("peak");
-  const personal = usePersonalBlocks();
   const [day, setDay] = useState<Weekday | null>(null);
-  const [editing, setEditing] = useState<PersonalBlock | "new" | null>(null);
-  if (!availability || !peak || !personal) return null;
+  if (!availability || !peak) return null;
 
   return (
     <>
@@ -50,6 +48,30 @@ export function ScheduleSettings() {
         })}
       </SettingsGroup>
 
+      <PersonalBlocksSettings />
+
+      <Sheet open={day !== null} onClose={() => setDay(null)} title={day ? `${weekdayShort(day)} hours` : "Hours"}>
+        {day ? (
+          <DayForm
+            key={day}
+            day={day}
+            availability={availability.find((w) => w.weekday === day)!}
+            peak={peak.find((w) => w.weekday === day)!}
+            onClose={() => setDay(null)}
+          />
+        ) : null}
+      </Sheet>
+    </>
+  );
+}
+
+/** Settings → Personal blocks (§5.6); also a step of first-run setup. */
+export function PersonalBlocksSettings() {
+  const personal = usePersonalBlocks();
+  const [editing, setEditing] = useState<PersonalBlock | "new" | null>(null);
+  if (!personal) return null;
+  return (
+    <>
       <SettingsGroup title="Personal blocks">
         {personal.length === 0 ? <p className="px-3 py-2 text-text-muted">Meals, routines, and rest that FOQUS never schedules over.</p> : null}
         {personal.map((p) => (
@@ -73,17 +95,6 @@ export function ScheduleSettings() {
         </div>
       </SettingsGroup>
 
-      <Sheet open={day !== null} onClose={() => setDay(null)} title={day ? `${weekdayShort(day)} hours` : "Hours"}>
-        {day ? (
-          <DayForm
-            key={day}
-            day={day}
-            availability={availability.find((w) => w.weekday === day)!}
-            peak={peak.find((w) => w.weekday === day)!}
-            onClose={() => setDay(null)}
-          />
-        ) : null}
-      </Sheet>
       <Sheet open={editing !== null} onClose={() => setEditing(null)} title={editing === "new" ? "New personal block" : "Personal block"}>
         {editing ? <PersonalForm key={editing === "new" ? "new" : editing.id} block={editing === "new" ? null : editing} onClose={() => setEditing(null)} /> : null}
       </Sheet>
@@ -99,7 +110,7 @@ function formatDays(days: Weekday[]): string {
   return days.map((d) => weekdayShort(d)).join(", ");
 }
 
-function TimeSelect({ id, label, value, options, onChange }: { id: string; label: string; value: string; options: string[]; onChange: (v: string) => void }) {
+export function TimeSelect({ id, label, value, options, onChange }: { id: string; label: string; value: string; options: string[]; onChange: (v: string) => void }) {
   return (
     <div>
       <label htmlFor={id} className="mb-1 block text-caption text-text-muted">
