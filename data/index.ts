@@ -38,6 +38,9 @@ export {
   useCompass,
   useWeekStats,
   useReviewGoals,
+  useQuarterlyDue,
+  useSeasonStats,
+  useSeason,
 } from "./hooks";
 export { getWeekStats, type GoalStrength, type ReviewGoal, type ReviewSnapshot } from "./coach";
 export { useDbReady, type DbState } from "./ready";

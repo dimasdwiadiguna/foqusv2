@@ -9,8 +9,9 @@ import { type CoachInput } from "@/lib/coach";
 import { goalColor } from "@/lib/areas";
 import { planStrength, type PlanStrength } from "@/lib/plan-strength";
 import { dueReview } from "@/lib/review";
+import { quarterlyDue } from "@/lib/quarterly";
 import { followThrough, peakSplit, weekStats, type WeekStats } from "@/lib/stats";
-import { addDays, dayBounds, seasonOfDate, startOfWeek, todayIn, toLocalDate, weekDates, weekdayOf } from "@/lib/time";
+import { addDays, dayBounds, parseSeasonId, quarterBounds, seasonOfDate, startOfWeek, todayIn, toLocalDate, weekDates, weekdayOf } from "@/lib/time";
 import type { Block, Goal, SeasonPlan, Weekday } from "@/types";
 import { getAllRows, getBlocksForDays, getCapacity, getDaySchedule, getPersonalBlocks, getSettings, type DaySchedule } from "./queries";
 
@@ -190,6 +191,7 @@ export async function getCoachInput(nowMs: number, strengths?: GoalStrength[]): 
     doneActions,
     missedCheckin: !(yCheckin && !yCheckin.deleted_at && yCheckin.completed_at) && (yPlanned || Boolean(yCheckin && !yCheckin.deleted_at)),
     reviewDue: await getReviewDue(nowMs),
+    quarterlyDue: await getQuarterlyDue(nowMs),
   };
 }
 
@@ -226,3 +228,52 @@ export async function getReviewGoals(nowMs: number): Promise<ReviewGoal[]> {
 
 /** What a completed review stores in `stats` (§5.15): the week's numbers, per-goal numbers, and streaks. */
 export type ReviewSnapshot = WeekStats & { goals: ReviewGoal[]; streaks: { checkin: number; focus: number } };
+
+/** The season whose quarterly review is due today (§5.16), or null. */
+export async function getQuarterlyDue(nowMs: number): Promise<string | null> {
+  const settings = await getSettings();
+  if (!settings) return null;
+  const today = todayIn(nowMs, settings.timezone);
+  const reviewed = new Set((await getAllRows("seasons")).filter((s) => s.reviewed_at).map((s) => s.id));
+  const withGoals = new Set((await getAllRows("season_plans")).map((p) => p.season_id));
+  return quarterlyDue(today, reviewed, (s) => withGoals.has(s));
+}
+
+export interface SeasonStats extends WeekStats {
+  achieved: number;
+  goals: number;
+}
+
+/** The quarterly review's season numbers (§5.16): totals over the quarter, plus goals achieved. */
+export async function getSeasonStats(season: string, nowMs: number): Promise<SeasonStats | null> {
+  const settings = await getSettings();
+  if (!settings) return null;
+  const { year, quarter } = parseSeasonId(season);
+  const { startsOn, endsOn } = quarterBounds(year, quarter);
+  const days: string[] = [];
+  for (let d = startsOn; d <= endsOn; d = addDays(d, 1)) days.push(d);
+  const tz = settings.timezone;
+  const goals = new Map((await getDb().t("goals").toArray()).map((g) => [g.id, g]));
+  const areas = new Map((await getDb().t("areas").toArray()).map((a) => [a.id, a]));
+  const base = weekStats({
+    weekStart: startsOn,
+    days,
+    timeZone: tz,
+    now: new Date(nowMs).toISOString(),
+    blocks: await getBlocksForDays(startsOn, endsOn, tz),
+    actions: await getDb().t("actions").toArray(),
+    owners: (key) => {
+      const id = key.slice(key.indexOf(":") + 1);
+      if (key.startsWith("goal:")) {
+        const g = goals.get(id);
+        return g ? { label: g.title, color: goalColor(g, areas) } : undefined;
+      }
+      const a = areas.get(id);
+      return a ? { label: a.name, color: a.color } : undefined;
+    },
+    checkins: await getAllRows("daily_checkins"),
+    focusMinutes: settings.focus_minutes,
+  });
+  const plans = (await getAllRows("season_plans")).filter((p) => p.season_id === season);
+  return { ...base, achieved: plans.filter((p) => p.resolution === "achieved").length, goals: plans.length };
+}

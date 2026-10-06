@@ -73,6 +73,7 @@ describe("coach rules (§5.18): each fires on its trigger and not otherwise", ()
     ["MISSED_CHECKIN", { missedCheckin: true }, { missedCheckin: false }],
     ["REVIEW_DUE", { reviewDue: "2026-10-05" }, { reviewDue: null }],
     ["STRONG_WEEK", { followThroughWeek: 0.85 }, { followThroughWeek: 0.84 }],
+    ["REVIEW_DUE", { quarterlyDue: "2026-Q4" }, { quarterlyDue: null }],
   ];
   for (const [code, on, off] of cases) {
     it(`${code}: ${JSON.stringify(on).slice(0, 60)}`, () => {

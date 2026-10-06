@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { getAllRows, getRow, getSettings } from "./queries";
 import { startOfWeek, todayIn } from "@/lib/time";
 import * as q from "./queries";
-import { getReviewDue, getReviewGoals, getStrengths, getWeekStats } from "./coach";
+import { getQuarterlyDue, getReviewDue, getReviewGoals, getSeasonStats, getStrengths, getWeekStats } from "./coach";
 import { sortInsights, type RuleCode } from "@/lib/coach";
 import { COMPASS_ID } from "@/lib/ids";
 import type { TableName, Tables, Weekday } from "@/types";
@@ -160,3 +160,10 @@ export function useReviewGoals() {
   const minute = Math.floor(now / 60_000);
   return useLiveQuery(() => getReviewGoals(Date.now()), [minute]);
 }
+export function useQuarterlyDue() {
+  const now = useNow(60_000);
+  const minute = Math.floor(now / 60_000);
+  return useLiveQuery(() => getQuarterlyDue(Date.now()), [minute]);
+}
+export const useSeasonStats = (season: string | undefined) => useLiveQuery(async () => (season ? getSeasonStats(season, Date.now()) : undefined), [season]);
+export const useSeason = (id: string | undefined) => useLiveQuery(async () => (id ? ((await q.getRow("seasons", id)) ?? null) : undefined), [id]);

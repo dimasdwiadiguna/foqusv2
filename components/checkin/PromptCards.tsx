@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useBlocksForDays, useCheckin, useNow, useReview, useReviewDue, useSettings, useUnresolvedBlocks } from "@/data";
+import { useBlocksForDays, useCheckin, useNow, useQuarterlyDue, useReview, useReviewDue, useSettings, useUnresolvedBlocks } from "@/data";
 import { checkinPrompt, plannedBlocks } from "@/lib/checkin";
-import { addDays, toLocalDate } from "@/lib/time";
+import { addDays, formatSeason, toLocalDate } from "@/lib/time";
 import { UnresolvedCard } from "@/components/resolver/UnresolvedCard";
 
 /**
- * Today's prompt cards (§6.7): unresolved blocks, the weekly review, yesterday's open check-in, today's check-in. At
+ * Today's prompt cards (§6.7): unresolved blocks, the quarterly and weekly reviews, yesterday's open check-in, today's check-in. At
  * most two show; the rest collapse into "1 more". Due cards stick with the header under the Next
  * card (Today opens scrolled to now, so anything above the timeline would be out of sight).
  * Today's check-in is a quiet row above the timeline (`quiet`) until the last block ends, or 18:00
@@ -23,6 +23,7 @@ export function PromptCards({ date, quiet = false }: { date: string; quiet?: boo
   const todayCheckin = useCheckin(date);
   const yesterdayCheckin = useCheckin(yesterday);
   const reviewDue = useReviewDue();
+  const quarterlyDue = useQuarterlyDue();
   const review = useReview(reviewDue ?? undefined);
   const [expanded, setExpanded] = useState(false);
   if (!settings || !unresolved || !twoDays || todayCheckin === undefined || yesterdayCheckin === undefined) return null;
@@ -42,6 +43,12 @@ export function PromptCards({ date, quiet = false }: { date: string; quiet?: boo
   }
   const cards: { key: string; node: React.ReactNode }[] = [];
   if (unresolved.length > 0) cards.push({ key: "unresolved", node: <UnresolvedCard /> });
+  if (quarterlyDue) {
+    cards.push({
+      key: "quarterly",
+      node: <CheckinCard href={`/quarterly?season=${quarterlyDue}`} title={`Your ${formatSeason(quarterlyDue)} review is ready`} label="Review" prominent />,
+    });
+  }
   if (reviewDue) {
     cards.push({
       key: "review",

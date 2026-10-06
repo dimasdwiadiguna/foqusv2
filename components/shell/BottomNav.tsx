@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useActiveSession, useInsights, useNow, useReviewDue, useSettings, useUnresolvedBlocks } from "@/data";
+import { useActiveSession, useInsights, useNow, useQuarterlyDue, useReviewDue, useSettings, useUnresolvedBlocks } from "@/data";
 import { formatClock, timerAt } from "@/lib/timer";
 import { CoachIcon, FocusIcon, GoalsIcon, PlanIcon, TodayIcon } from "./icons";
 
@@ -24,7 +24,9 @@ export function BottomNav() {
   const unresolved = useUnresolvedBlocks()?.length ?? 0;
   const running = useRunningLabel();
   const insights = useInsights()?.length ?? 0;
-  const reviewDue = Boolean(useReviewDue());
+  const weekly = useReviewDue();
+  const quarterly = useQuarterlyDue();
+  const reviewDue = Boolean(weekly) || Boolean(quarterly);
   const coachDot = insights > 0 || reviewDue;
 
   return (
