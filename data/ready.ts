@@ -6,6 +6,7 @@ import { ensureSeed } from "@/db/seed";
 import { startOfWeek, todayIn } from "@/lib/time";
 import { rolloverWeek } from "@/repo/actions";
 import { generateOccurrences } from "@/repo/recurrence";
+import { refreshCoach } from "@/repo/reflection";
 import { getSettings } from "./queries";
 
 let opening: Promise<void> | null = null;
@@ -21,6 +22,8 @@ function openOnce(): Promise<void> {
       await rolloverWeek(startOfWeek(today));
       // Recurring occurrences for the rest of this week (§5.5); ids are deterministic.
       await generateOccurrences(startOfWeek(today), today);
+      // Plan strength snapshots and coach insights (§5.17, §5.18); never blocks opening the app.
+      await refreshCoach().catch(() => undefined);
     }
     // Ask the browser not to evict this data under storage pressure (Step 1.5).
     void navigator.storage?.persist?.().catch(() => false);

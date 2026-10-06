@@ -14,6 +14,7 @@ import {
   useRow,
   useSettings,
   useToday,
+  useStrengths,
 } from "@/data";
 import { goalColor } from "@/lib/areas";
 import { achievementNumbers, goalProgress, goalStats, MAX_MAJOR_MOVES } from "@/lib/goals";
@@ -22,6 +23,7 @@ import { achieveGoal, addMajorMove, deleteGoal, deleteMajorMove, dropGoal, setMa
 import type { Action, Goal, MajorMove, SeasonPlan } from "@/types";
 import { ActionList } from "@/components/actions/ActionList";
 import { RuleList } from "@/components/recurrence/RuleList";
+import { StrengthCard } from "@/components/coach/Strength";
 import { useQuickAdd } from "@/components/actions/QuickAdd";
 import { showMoment } from "@/components/celebration/Moments";
 import { ScreenSkeleton } from "@/components/shell/AppShell";
@@ -78,6 +80,7 @@ function GoalBody({ goal, plan, readOnly }: { goal: Goal; plan: SeasonPlan; read
   const settings = useSettings();
   const now = useNow();
   const quickAdd = useQuickAdd();
+  const strength = useStrengths()?.find((x) => x.plan.id === plan.id)?.strength;
   const [menu, setMenu] = useState(false);
   const [confirm, setConfirm] = useState<"achieve" | "drop" | "delete" | null>(null);
 
@@ -138,6 +141,9 @@ function GoalBody({ goal, plan, readOnly }: { goal: Goal; plan: SeasonPlan; read
         </div>
         {plan.metric_target ? <MetricUpdater plan={plan} readOnly={readOnly} /> : null}
       </section>
+
+      {/* 3. Plan strength (active goals, current season plan) */}
+      {strength ? <StrengthCard goalId={goal.id} planId={plan.id} strength={strength} /> : null}
 
       {/* 4. Why and anti-goals */}
       <details className="mb-3 rounded-card border border-border bg-surface px-4">

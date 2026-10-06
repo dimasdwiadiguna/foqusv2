@@ -5,6 +5,9 @@ import { useEffect, useState } from "react";
 import { getAllRows, getRow, getSettings } from "./queries";
 import { startOfWeek, todayIn } from "@/lib/time";
 import * as q from "./queries";
+import { getReviewDue, getReviewGoals, getStrengths, getWeekStats } from "./coach";
+import { sortInsights, type RuleCode } from "@/lib/coach";
+import { COMPASS_ID } from "@/lib/ids";
 import type { TableName, Tables, Weekday } from "@/types";
 
 /** A live row, or undefined while loading or if it does not exist. */
@@ -123,3 +126,37 @@ export function useCapacity(weekStart: string | undefined) {
   return useLiveQuery(async () => (weekStart ? q.getCapacity(weekStart, Date.now()) : null), [weekStart, minute]);
 }
 export const useRules = () => useLiveQuery(q.getRules, []);
+
+// ---------------------------------------------------------------------------
+// Step 2.3
+
+/** Plan strength for each active goal (rank order), refreshed every minute and on data changes. */
+export function useStrengths() {
+  const now = useNow(60_000);
+  const minute = Math.floor(now / 60_000);
+  return useLiveQuery(() => getStrengths(Date.now()), [minute]);
+}
+/** Weekly snapshots of a plan's strength, oldest first. */
+export const useStrengthHistory = (planId: string | undefined) =>
+  useLiveQuery(async () => (planId ? (await q.getAllRows("plan_strength_snapshots")).filter((s) => s.season_plan_id === planId).sort((a, b) => a.week_start.localeCompare(b.week_start)) : []), [planId]);
+/** New coach insights, highest priority first. */
+export const useInsights = () =>
+  useLiveQuery(async () => sortInsights((await q.getAllRows("coach_messages")).filter((m) => m.status === "new").map((m) => ({ ...m, code: m.rule_code as RuleCode }))), []);
+export function useReviewDue() {
+  const now = useNow(60_000);
+  const minute = Math.floor(now / 60_000);
+  return useLiveQuery(() => getReviewDue(Date.now()), [minute]);
+}
+export const useReview = (week: string | undefined) => useLiveQuery(async () => (week ? ((await q.getRow("weekly_reviews", week)) ?? null) : undefined), [week]);
+export const useReviews = () => useLiveQuery(async () => (await q.getAllRows("weekly_reviews")).filter((r) => r.completed_at).sort((a, b) => b.week_start.localeCompare(a.week_start)), []);
+export const useCompass = () => useLiveQuery(async () => (await q.getRow("compass", COMPASS_ID)) ?? null, []);
+export function useWeekStats(week: string | undefined) {
+  const now = useNow(60_000);
+  const minute = Math.floor(now / 60_000);
+  return useLiveQuery(async () => (week ? getWeekStats(week, Date.now()) : undefined), [week, minute]);
+}
+export function useReviewGoals() {
+  const now = useNow(60_000);
+  const minute = Math.floor(now / 60_000);
+  return useLiveQuery(() => getReviewGoals(Date.now()), [minute]);
+}

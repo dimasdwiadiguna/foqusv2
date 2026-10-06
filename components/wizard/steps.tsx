@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useState } from "react";
-import { getActivePlanSpans, useActionsForGoal, useAreas, useMajorMoves } from "@/data";
+import { getActivePlanSpans, useActionsForGoal, useAreas, useMajorMoves, useStrengths } from "@/data";
 import { cleanTitle } from "@/lib/actions";
 import {
   CONCURRENT_WARNING,
@@ -25,6 +25,7 @@ import {
 } from "@/repo";
 import type { Goal, MajorMove, Obstacle, SeasonPlan } from "@/types";
 import { RuleList } from "@/components/recurrence/RuleList";
+import { StrengthBadge } from "@/components/coach/Strength";
 import { EstimateStepper } from "@/components/actions/EstimateStepper";
 import { Button, IconButton } from "@/components/ui/Button";
 import { ConfirmSheet } from "@/components/ui/ConfirmSheet";
@@ -463,6 +464,7 @@ export function FinishStep({ goal, plan, register }: { goal: Goal; plan: SeasonP
   const actions = (useActionsForGoal(goal.id) ?? []).filter((a) => a.status === "todo" && !a.recurrence_rule_id);
   useRegister(register, null);
   const pomodoros = actions.reduce((n, a) => n + a.estimate_pomodoros, 0);
+  const strength = useStrengths()?.find((x) => x.plan.id === plan.id)?.strength;
 
   const row = (label: string, value: React.ReactNode) => (
     <div className="border-b border-border py-3">
@@ -474,6 +476,15 @@ export function FinishStep({ goal, plan, register }: { goal: Goal; plan: SeasonP
   return (
     <>
       <Prompt title={goal.title} body="Here is your plan. You can change any of it from the goal's page." />
+      {strength ? (
+        <section aria-label="Plan strength" className="mb-4 rounded-card border border-border bg-surface p-3">
+          <p className="flex items-center justify-between">
+            <span className="text-caption tracking-wide text-text-muted uppercase">Plan strength</span>
+            <StrengthBadge goalId={goal.id} strength={strength} className="text-heading" />
+          </p>
+          {strength.improvements[0] ? <p className="mt-1 text-text-muted">Top improvement: {strength.improvements[0].text}</p> : null}
+        </section>
+      ) : null}
       <dl>
         {row("Outcome", plan.outcome)}
         {plan.metric_target ? row("Metric", `${plan.metric_label ?? "Progress"}: ${plan.metric_current ?? 0} of ${plan.metric_target}`) : null}

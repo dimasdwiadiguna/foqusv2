@@ -2,27 +2,30 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useActiveSession, useNow, useSettings, useUnresolvedBlocks } from "@/data";
+import { useActiveSession, useInsights, useNow, useReviewDue, useSettings, useUnresolvedBlocks } from "@/data";
 import { formatClock, timerAt } from "@/lib/timer";
-import { FocusIcon, GoalsIcon, PlanIcon, SettingsIcon, TodayIcon } from "./icons";
+import { CoachIcon, FocusIcon, GoalsIcon, PlanIcon, TodayIcon } from "./icons";
 
 /**
- * Bottom navigation (§6.6). Until Step 2.3 the fifth slot is Settings; Coach replaces it then.
- * Focus sits in the center, raised; while a session runs it pulses and shows the time left.
- * Today carries the count of unresolved blocks (§5.10).
+ * Bottom navigation (§6.6). Focus sits in the center, raised; while a session runs it pulses and
+ * shows the time left. Today carries the count of unresolved blocks (§5.10); Coach shows a dot when
+ * there are new insights or a review is due. Settings lives in the Today header (from Step 2.3).
  */
 const TABS = [
   { href: "/today", label: "Today", Icon: TodayIcon },
   { href: "/plan", label: "Plan", Icon: PlanIcon },
   { href: "/focus", label: "Focus", Icon: FocusIcon, center: true },
   { href: "/goals", label: "Goals", Icon: GoalsIcon },
-  { href: "/settings", label: "Settings", Icon: SettingsIcon },
+  { href: "/coach", label: "Coach", Icon: CoachIcon },
 ] as const;
 
 export function BottomNav() {
   const pathname = usePathname();
   const unresolved = useUnresolvedBlocks()?.length ?? 0;
   const running = useRunningLabel();
+  const insights = useInsights()?.length ?? 0;
+  const reviewDue = Boolean(useReviewDue());
+  const coachDot = insights > 0 || reviewDue;
 
   return (
     <nav aria-label="Main" className="shrink-0 border-t border-border bg-surface pb-[env(safe-area-inset-bottom)]">
@@ -36,7 +39,9 @@ export function BottomNav() {
               <Link
                 href={href}
                 aria-current={active ? "page" : undefined}
-                aria-label={center && running ? `Focus, ${running} left` : badge ? `${label}, ${badge} unresolved` : undefined}
+                aria-label={
+                  center && running ? `Focus, ${running} left` : badge ? `${label}, ${badge} unresolved` : href === "/coach" && coachDot ? "Coach, something new" : undefined
+                }
                 className={`relative flex min-h-12 w-full flex-col items-center justify-center gap-0.5 pt-1 pb-0.5 text-[11px] font-medium ${
                   active ? "text-accent" : "text-text-muted"
                 }`}
@@ -53,6 +58,7 @@ export function BottomNav() {
                   <Icon className="size-5" />
                 )}
                 <span>{label}</span>
+                {href === "/coach" && coachDot ? <span aria-hidden="true" className="absolute top-1.5 left-1/2 ml-2.5 size-2.5 rounded-full bg-accent" /> : null}
                 {badge ? (
                   <span aria-hidden="true" className="absolute top-1 left-1/2 ml-2 min-w-5 rounded-full bg-danger px-1 text-center text-[11px] leading-5 font-bold text-bg">
                     {badge}

@@ -12,9 +12,9 @@ Spec and plan: `BRIEF.md` (the brief's own instructions call it `FOQUS-BUILD-BRI
 | 1.4 Focus and the resolver | Done |
 | 1.5 Install, offline shell, and backup | Done |
 | 2.1 Daily loop | Done; owner checked |
-| 2.2 Planning help | Done; waiting for the owner to check on the iPhone |
-| 2.3 Reviews and coach | Next |
-| 2.4 Completion | Not started |
+| 2.2 Planning help | Done; owner checked |
+| 2.3 Reviews and coach | Done; waiting for the owner to check on the iPhone |
+| 2.4 Completion | Next |
 | 3.1 Schema and login | Not started |
 | 3.2 Sync | Not started |
 | 3.3 Offline rules | Not started |
@@ -95,6 +95,19 @@ Spec and plan: `BRIEF.md` (the brief's own instructions call it `FOQUS-BUILD-BRI
 - Tests: scheduler and draft (goal rank order, peak-first goal work and non-peak-first area tasks, the daily cap, 8 pomodoros split over two days, smaller chunks re-queued, an unmeetable due date marked after-due or listed with its reason, recurring on its own day at its preferred time, determinism with shuffled input, and a 30-action week checked for no overlap with blocks, buffers, personal blocks, or events, within availability, under the cap, in well under a second); capacity; recurrence; repo tests for generating twice on a Monday, editing and pausing, rollover dropping occurrences, same-week moves, and draft → re-draft → discard → commit.
 - Checked in Chromium at iPhone size: a rule from the wizard and one from an area page, three opens on Monday giving 8 occurrences once, the tray with repeat icons, the meter before and with a draft, draft → discard → draft → commit, occurrences on their own days, "didn't fit" with a cap of 4, and the goal page's recurring section. No console errors; the Stage 1 and Step 2.1 suites still pass.
 
+### Step 2.3 · Reviews and coach — what exists
+
+- **Navigation**: Coach replaces Settings as the fifth tab, with a dot when there are new insights or a review is due. Settings is the gear in the Today header (with a back link to Today). Check-in history moved to Coach (`/coach/checkins`).
+- **`lib/plan-strength`** (§5.17): the four parts (goal completeness, major moves, scheduled vs needed, follow-through), bands, the "No data yet" 12 and "Add sized actions" 0 cases, and improvements ordered by points with links (wizard step, goal page, or Plan). Shown as "Fair 63" on goal cards, as a card on goal detail (score, band, four mini-bars with hints, the top improvement, a trend line of weekly snapshots), and on the wizard's finish screen. Crossing into Strong pops the badge once.
+- **Snapshots**: one per goal plan per week (`<plan_id>:<week_start>`), updated when the coach refreshes.
+- **`lib/stats`**: follow-through, the review's week numbers (completed vs planned, follow-through, goal share, hours per goal and area, average energy and focus, rescheduled, dropped), and the peak-window split.
+- **`lib/coach`**: all 14 rules of §5.18 with thresholds as constants, priority order, the 7-day dismissal (via `valid_until`), the daily brief sentence, and 14 principle cards (one per day). Insights refresh on app open, after each check-in, after a review, and when Coach opens.
+- **Coach tab**: daily brief, today's principle, insights with an action button and ✕, plan strength per goal, and Weekly review (Start / Resume / Done / Opens Sunday), Past reviews, Check-in history, Compass. The daily brief is also on Today, above the timeline.
+- **Compass** (`/coach/compass`): the vision in large text, values as pills, each active goal's why; Edit turns it into a form.
+- **Weekly review** (`/review`, full screen): Compass → Numbers → Wins and lessons (with up to 3 coach insights) → Pick actions (per goal in rank order, then per area; recurring occurrences of next week and this week's unfinished actions pre-ticked, "carried" marked; unticked go to the backlog, unticked occurrences are dropped; a live capacity line) → Schedule ("Draft my week" for next week with the draft bar, or finish and place them yourself) → Done (a summary card with confetti). The step and notes are saved, so it resumes where it was left. Completing stores a snapshot of the numbers, per-goal strength and metric, and streaks in `stats`; a completed review (and Past reviews) always shows that snapshot. It is available from Sunday, prompted by a card on Today and on Coach until done, for a week that had blocks or check-ins.
+- Tests: plan strength reproduces each table of §5.17 and both special cases; every coach rule has a firing and a non-firing case; dismissal holds for 7 days and returns after; review availability; repo tests for Compass, resuming a review, frozen numbers after later data changes, next-week picks, coach refresh and dismissal persisting, one snapshot per week, and the missed check-in insight clearing after a check-in.
+- Checked in Chromium at iPhone size: the wizard finish strength, the Coach tab and dot, the Today review card and gear, insights and a dismissal that survives a reload, goal card and goal detail strength, Compass editing, a review left at step 3 and resumed with its notes, picks moving actions to next week, a draft committed inside the review, the done screen with confetti, past reviews, and the stored numbers unchanged after the week's data was edited. Offline, the Coach tab opens from cache. No console errors; earlier suites pass.
+
 ## Decisions
 
 Choices made where the brief was silent.
@@ -161,6 +174,11 @@ Choices made where the brief was silent.
 - **Commit drops drafts whose start has passed** rather than turning them into instantly unresolved blocks.
 - **Occurrences have no due date**; they are tied to `occurrence_date` and their week. Generation never creates days already past, so a first open on Wednesday does not add Monday's.
 - **An occurrence the owner deleted is not recreated**, and a rule change leaves occurrences that already have a block alone.
+- **Coach messages have deterministic ids** `<RULE_CODE>:<trigger>` (a goal, action, day, or week). "Same trigger" means the same id. A dismissal sets `valid_until` to 7 days later; the message stays dismissed until then. Messages whose trigger is gone become `done`.
+- **DEADLINE_RISK compares remaining pomodoros × 30 minutes with free time before the plan's end** (availability minus personal blocks, at most 100 days ahead), not with time left after other blocks.
+- **The weekly review looks back on this week from Sunday, otherwise on last week**, and plans the week after it. It is offered only for a week that had blocks or check-ins, so a fresh install is not asked to review an empty week. If it is done late (after Monday's rollover), the pick list simply shows this week's list.
+- **Week rollover needs no special case for a completed review**: the review's picks already move ticked actions to next week and unticked ones to the backlog.
+- **The daily brief on Today sits above the timeline**, not in the sticky header, to keep the header compact.
 - **Lint-enforced layering.** `app/` and `components/` may not import `db/` or Dexie. `lib/` may not import db, repo, data, or React.
 
 ## Deviations
@@ -199,3 +217,8 @@ The owner used the app for several days. Feedback: overall it feels nice; four c
   - **Export a backup first** (Settings → Data → Export backup).
   - Add a recurring action on a goal (goal page → Recurring actions) and one on an area; this week's occurrences appear in the tray with the repeat icon.
   - Plan → Draft my week. Drag or delete a draft block, then Commit (or Discard). Check the capacity meter before and after.
+- Step 2.3 checks on the iPhone:
+  - **Export a backup first** (Settings is now the gear on Today → Data → Export backup).
+  - Coach tab: read the brief and insights; dismiss one; open Compass and write your vision.
+  - On Sunday, do the weekly review from the Today card, leave it midway once, and come back to it.
+  - Check each goal's plan strength (Goals list and the goal page) and try its top improvement.

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useMemo } from "react";
-import { useAreas, useCompletedByAction, useGoalsInSeason, useRows, useSetupProgress, useToday } from "@/data";
+import { useAreas, useCompletedByAction, useGoalsInSeason, useRows, useSetupProgress, useStrengths, useToday } from "@/data";
 import { goalColor } from "@/lib/areas";
 import { goalProgress } from "@/lib/goals";
 import { SETUP_STEPS } from "@/lib/goal-setup";
@@ -42,6 +42,7 @@ function GoalsForSeason({ season, current, onSeason }: { season: string; current
   const actions = useRows("actions");
   const completed = useCompletedByAction();
   const setup = useSetupProgress();
+  const strengths = useStrengths();
   const readOnly = season < current;
 
   const areaMap = useMemo(() => new Map((areas ?? []).map((a) => [a.id, a])), [areas]);
@@ -65,6 +66,7 @@ function GoalsForSeason({ season, current, onSeason }: { season: string; current
       href={`/goals/goal?id=${encodeURIComponent(r.goal.id)}&season=${season}`}
       setupUnfinished={setup?.goalId === r.goal.id}
       sortable={sortable}
+      strength={strengths?.find((x) => x.plan.id === r.plan.id)?.strength}
     />
   );
 
