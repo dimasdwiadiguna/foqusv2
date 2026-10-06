@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { formatShortDate } from "@/lib/time";
 import type { Goal, SeasonPlan } from "@/types";
+import type { PlanStrength } from "@/lib/plan-strength";
+import { StrengthBadge } from "@/components/coach/Strength";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { DragHandle, type SortableRenderProps } from "@/components/ui/Sortable";
 
-/** A goal in the Goals list: rank, title, area color, progress ring, end date (§6.7). */
+/** A goal in the Goals list: rank, title, area color, plan strength, progress ring, end date (§6.7). */
 export function GoalCard({
   goal,
   plan,
@@ -13,7 +15,9 @@ export function GoalCard({
   href,
   setupUnfinished,
   sortable,
+  strength,
 }: {
+  strength?: PlanStrength;
   goal: Goal;
   plan: SeasonPlan;
   color: string;
@@ -43,6 +47,7 @@ export function GoalCard({
           <span className="flex flex-wrap gap-x-2 text-caption text-text-muted">
             {goal.status === "achieved" ? <span className="text-success">Achieved</span> : null}
             {goal.status === "dropped" ? <span>Dropped</span> : null}
+            {!closed && strength ? <StrengthBadge goalId={goal.id} strength={strength} /> : null}
             {!closed ? <span>ends {formatShortDate(plan.ends_on)}</span> : null}
             {setupUnfinished ? <span className="text-accent">Setup unfinished</span> : null}
           </span>

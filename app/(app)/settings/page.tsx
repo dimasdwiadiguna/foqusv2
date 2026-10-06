@@ -7,7 +7,6 @@ import { FocusSettings } from "@/components/settings/FocusSettings";
 import { AreasSettings } from "@/components/settings/AreasSettings";
 import { ScheduleSettings } from "@/components/settings/ScheduleSettings";
 import { DataSettings } from "@/components/settings/DataSettings";
-import { ReflectionSettings } from "@/components/settings/ReflectionSettings";
 
 export default function SettingsPage() {
   const settings = useSettings();
@@ -15,8 +14,7 @@ export default function SettingsPage() {
 
   return (
     <>
-      <ScreenHeader title="Settings" />
-      <ReflectionSettings />
+      <ScreenHeader back={{ href: "/today", label: "Today" }} title="Settings" />
       <ScheduleSettings />
       <FocusSettings settings={settings} />
       <AreasSettings />

@@ -6,6 +6,7 @@ import { todayIn } from "@/lib/time";
 import type { DailyCheckin, DateString } from "@/types";
 import { nowInstant } from "./clock";
 import { createRow, updateRow } from "./rows";
+import { refreshCoach } from "./reflection";
 import { writeTx } from "./tx";
 
 export interface CheckinInput {
@@ -61,5 +62,7 @@ export async function completeCheckin(date: DateString, input: CheckinInput = {}
   const row = await saveCheckin(date, input);
   if (row.completed_at) return false;
   await updateRow("daily_checkins", date, { completed_at: nowInstant() });
+  // The coach re-evaluates after each check-in (§5.18).
+  await refreshCoach().catch(() => undefined);
   return true;
 }

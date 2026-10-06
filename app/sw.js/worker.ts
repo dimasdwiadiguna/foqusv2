@@ -10,7 +10,7 @@
  * - Client-side route payloads (RSC): network only. Offline they fail, and Next.js falls back to a
  *   full navigation, which the cache serves.
  */
-export const ROUTES = ["/today", "/plan", "/focus", "/goals", "/goals/goal", "/goals/area", "/settings", "/settings/checkins", "/goal-setup", "/checkin"];
+export const ROUTES = ["/today", "/plan", "/focus", "/goals", "/goals/goal", "/goals/area", "/settings", "/goal-setup", "/checkin", "/coach", "/coach/checkins", "/coach/compass", "/coach/reviews", "/review"];
 
 export const ASSETS = [
   "/manifest.webmanifest",

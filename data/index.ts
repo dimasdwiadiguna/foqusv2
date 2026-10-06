@@ -29,7 +29,17 @@ export {
   useStreaks,
   useCapacity,
   useRules,
+  useStrengths,
+  useStrengthHistory,
+  useInsights,
+  useReviewDue,
+  useReview,
+  useReviews,
+  useCompass,
+  useWeekStats,
+  useReviewGoals,
 } from "./hooks";
+export { getWeekStats, type GoalStrength, type ReviewGoal, type ReviewSnapshot } from "./coach";
 export { useDbReady, type DbState } from "./ready";
 export {
   getActivePlanSpans,

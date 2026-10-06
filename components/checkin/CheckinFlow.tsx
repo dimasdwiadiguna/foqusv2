@@ -37,7 +37,7 @@ function Closed({ date }: { date: string }) {
     <div className="p-4 pt-16 text-center">
       <p className="text-heading">The check-in for {formatDayHeader(date)} is closed.</p>
       <p className="mt-1 text-text-muted">A check-in can be changed until the end of the next day.</p>
-      <Link href="/settings/checkins" className="mt-4 inline-flex min-h-11 items-center text-accent">
+      <Link href="/coach/checkins" className="mt-4 inline-flex min-h-11 items-center text-accent">
         See past check-ins
       </Link>
     </div>

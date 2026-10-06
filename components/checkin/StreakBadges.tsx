@@ -16,7 +16,7 @@ export function StreakBadges() {
   const f = streaks.focus.current;
   return (
     <Link
-      href="/settings/checkins"
+      href="/coach/checkins"
       aria-label={`Check-in streak ${c} ${c === 1 ? "day" : "days"}, focus streak ${f} ${f === 1 ? "day" : "days"}. Open check-ins`}
       className="flex min-h-11 items-center gap-2 px-1 text-caption font-semibold"
     >

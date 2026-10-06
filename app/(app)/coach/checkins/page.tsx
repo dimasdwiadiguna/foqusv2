@@ -8,7 +8,7 @@ import { ScreenSkeleton } from "@/components/shell/AppShell";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
 
-/** Past check-ins (§5.14), reachable from Settings until Coach exists (Step 2.3). */
+/** Past check-ins (§5.14), browsable from Coach. */
 export default function CheckinsPage() {
   const checkins = useCheckins();
   const streaks = useStreaks();
@@ -17,7 +17,7 @@ export default function CheckinsPage() {
 
   return (
     <>
-      <ScreenHeader back={{ href: "/settings", label: "Settings" }} title="Check-ins" />
+      <ScreenHeader back={{ href: "/coach", label: "Coach" }} title="Check-ins" />
       <dl className="mb-4 grid grid-cols-2 gap-2">
         <div className="rounded-card border border-border bg-surface px-3 py-2">
           <dt className="text-caption text-text-muted">Check-in streak</dt>
