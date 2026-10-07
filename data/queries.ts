@@ -12,6 +12,8 @@ import type {
   DailyCheckin,
   FocusSession,
   Goal,
+  Habit,
+  HabitLog,
   MajorMove,
   PeakWindow,
   PersonalBlock,
@@ -320,4 +322,18 @@ export async function getCapacity(weekStart: string, nowMs: number): Promise<Cap
 /** Live recurring rules, by title. */
 export async function getRules(): Promise<RecurrenceRule[]> {
   return (await getAllRows("recurrence_rules")).sort((a, b) => a.title.localeCompare(b.title));
+}
+
+// ---------------------------------------------------------------------------
+// Stage 2 exit: elastic habits
+
+
+/** Live habits by their order; archived ones only when asked. */
+export async function getHabits(includeArchived = false): Promise<Habit[]> {
+  return (await getAllRows("habits")).filter((h) => includeArchived || !h.archived_at).sort((a, b) => a.sort_order - b.sort_order);
+}
+
+/** Live habit logs on the local dates `from`…`to` (inclusive). */
+export async function getHabitLogs(from: string, to: string): Promise<HabitLog[]> {
+  return (await getDb().t("habit_logs").where("date").between(from, to, true, true).toArray()).filter((l) => !l.deleted_at);
 }

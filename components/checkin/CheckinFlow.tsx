@@ -3,20 +3,23 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { getStreaks, useAreas, useBlocksForDays, useCheckin, usePersonalBlocks, usePrayerSettings, useRows, useSettings, useStreaks, useToday, useUnresolvedBlocks } from "@/data";
+import { getStreaks, useAreas, useBlocksForDays, useCheckin, useHabitLogs, useHabits, usePersonalBlocks, usePrayerSettings, useRows, useSettings, useStreaks, useToday, useUnresolvedBlocks } from "@/data";
 import { closingLine, dayNumbers, isCheckinEditable, NOTE_MAX } from "@/lib/checkin";
 import { milestoneReached } from "@/lib/streaks";
+import { habitDue, type Level } from "@/lib/habits";
+import { HabitLogControls } from "@/components/habits/HabitStrip";
+import { levelSummary } from "@/components/habits/HabitsSection";
 import { prayerSpans, prayerTitle } from "@/lib/prayer";
 import { addDays, formatDayHeader, toLocalDate, toLocalTime, weekdayOf } from "@/lib/time";
-import { completeCheckin, saveCheckin } from "@/repo";
+import { completeCheckin, logHabit, saveCheckin } from "@/repo";
 import type { DailyCheckin, Settings } from "@/types";
 import { milestoneMoment, showMoment } from "@/components/celebration/Moments";
 import { BlockCard } from "@/components/resolver/Resolver";
 import { Button } from "@/components/ui/Button";
 import { PomodoroDots } from "@/components/ui/PomodoroDots";
 
-type Step = "resolve" | "rate" | "note" | "tomorrow" | "close";
-const LABELS: Record<Step, string> = { resolve: "Resolve", rate: "Rate", note: "Note", tomorrow: "Tomorrow", close: "Close" };
+type Step = "resolve" | "rate" | "habits" | "note" | "tomorrow" | "close";
+const LABELS: Record<Step, string> = { resolve: "Resolve", rate: "Rate", habits: "Habits", note: "Note", tomorrow: "Tomorrow", close: "Close" };
 
 /**
  * The daily check-in (§5.14, §6.7 flows): Resolve → Rate → Note → Tomorrow → Close. Ratings and
@@ -27,10 +30,12 @@ export function CheckinFlow({ date, startAt }: { date: string; startAt?: Step })
   const today = useToday();
   const checkin = useCheckin(date);
   const unresolved = useUnresolvedBlocks();
-  if (!settings || !today || checkin === undefined || !unresolved) return null;
+  const habits = useHabits();
+  if (!settings || !today || checkin === undefined || !unresolved || !habits) return null;
   if (!isCheckinEditable(date, today)) return <Closed date={date} />;
   const dayUnresolved = unresolved.filter((b) => toLocalDate(b.starts_at, settings.timezone) === date);
-  return <Flow date={date} settings={settings} checkin={checkin} hasUnresolved={dayUnresolved.length > 0} startAt={startAt} />;
+  const hasHabits = habits.some((h) => habitDue(h, date));
+  return <Flow date={date} settings={settings} checkin={checkin} hasUnresolved={dayUnresolved.length > 0} hasHabits={hasHabits} startAt={startAt} />;
 }
 
 function Closed({ date }: { date: string }) {
@@ -50,17 +55,20 @@ function Flow({
   settings,
   checkin,
   hasUnresolved,
+  hasHabits,
   startAt,
 }: {
   date: string;
   settings: Settings;
   checkin: DailyCheckin | null;
   hasUnresolved: boolean;
+  hasHabits: boolean;
   startAt?: Step;
 }) {
   const router = useRouter();
   // The steps are fixed when the flow opens: Resolve only when the day had unresolved blocks.
-  const [steps] = useState<Step[]>(() => (hasUnresolved ? ["resolve", "rate", "note", "tomorrow", "close"] : ["rate", "note", "tomorrow", "close"]));
+  // Habits (Stage 2 exit) only when some are due that day.
+  const [steps] = useState<Step[]>(() => [...(hasUnresolved ? (["resolve"] as Step[]) : []), "rate", ...(hasHabits ? (["habits"] as Step[]) : []), "note", "tomorrow", "close"]);
   const [step, setStep] = useState<Step>(() => (startAt && steps.includes(startAt) && startAt !== "close" ? startAt : steps[0]));
   const [energy, setEnergy] = useState<number | null>(checkin?.energy ?? null);
   const [focus, setFocus] = useState<number | null>(checkin?.focus ?? null);
@@ -168,6 +176,7 @@ function Flow({
             />
           </section>
         ) : null}
+        {step === "habits" ? <HabitsStep date={date} /> : null}
         {step === "note" ? (
           <section>
             <h1 className="mb-4 text-title">
@@ -388,7 +397,61 @@ function CloseStep({
           {numbers.done} done of {numbers.planned} planned
         </p>
       </div>
+      <HabitsClose date={date} />
       <p className="mt-4 text-left text-text-muted">{closingLine({ ...numbers, energy, focus })}</p>
     </section>
+  );
+}
+
+/** The day's habits, each at the level reached (Stage 2 exit). Any level counts. */
+function HabitsStep({ date }: { date: string }) {
+  const habits = useHabits();
+  const logs = useHabitLogs(date, date);
+  const [error, setError] = useState<string | null>(null);
+  if (!habits || !logs) return null;
+  const due = habits.filter((h) => habitDue(h, date));
+  return (
+    <section>
+      <h1 className="mb-1 text-title">Habits</h1>
+      <p className="mb-4 text-text-muted">Any level counts. Min on a hard day still keeps the streak.</p>
+      <ul className="flex flex-col gap-3">
+        {due.map((h) => (
+          <li key={h.id} className="rounded-card border border-border bg-surface px-3 py-2">
+            <p className="mb-2 font-semibold">{h.title}</p>
+            <HabitLogControls
+              habit={h}
+              log={logs.find((l) => l.habit_id === h.id) ?? null}
+              onLog={(v) => {
+                setError(null);
+                void logHabit(h.id, date, v).catch((e: unknown) => setError(e instanceof Error ? e.message : "That could not be saved."));
+              }}
+            />
+          </li>
+        ))}
+      </ul>
+      {error ? (
+        <p role="alert" className="mt-3 text-caption text-danger">
+          {error}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+function HabitsClose({ date }: { date: string }) {
+  const habits = useHabits();
+  const logs = useHabitLogs(date, date);
+  if (!habits || !logs) return null;
+  const due = habits.filter((h) => habitDue(h, date));
+  if (due.length === 0) return null;
+  const levels = due.map((h) => (logs.find((l) => l.habit_id === h.id)?.level ?? 0) as Level);
+  const hit = levels.filter((l) => l > 0).length;
+  return (
+    <div className="mt-3 rounded-card border border-border bg-surface px-4 py-3 text-left">
+      <p className="text-caption text-text-muted">Habits</p>
+      <p className="text-heading">
+        {hit} of {due.length} done{hit ? ` · ${levelSummary(levels)}` : ""}
+      </p>
+    </div>
   );
 }

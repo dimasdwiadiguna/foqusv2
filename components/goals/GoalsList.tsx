@@ -11,6 +11,7 @@ import { reorderGoals } from "@/repo";
 import type { Action } from "@/types";
 import { QuickAddButton } from "@/components/actions/QuickAddButton";
 import { AreaChips } from "@/components/goals/AreaChips";
+import { HabitsSection } from "@/components/habits/HabitsSection";
 import { GoalCard } from "@/components/goals/GoalCard";
 import { SeasonSelector } from "@/components/goals/SeasonSelector";
 import { ScreenSkeleton } from "@/components/shell/AppShell";
@@ -153,6 +154,11 @@ export function GoalsList({ season, current, onSeason, header = true }: { season
       ) : null}
 
       <AreaChips />
+      {header ? (
+        <div className="mt-5">
+          <HabitsSection />
+        </div>
+      ) : null}
     </>
   );
 }

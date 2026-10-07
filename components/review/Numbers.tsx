@@ -90,6 +90,25 @@ export function Numbers({ s }: { s: ReviewSnapshot }) {
         </section>
       ) : null}
 
+      {s.habits?.length ? (
+        <section aria-labelledby="review-habits" className="rounded-card border border-border bg-surface px-3 py-2">
+          <h3 id="review-habits" className="mb-1">
+            Habits
+          </h3>
+          <ul className="divide-y divide-border">
+            {s.habits.map((h) => (
+              <li key={h.habit_id} className="flex items-center gap-2 py-1.5">
+                <span className="min-w-0 flex-1 truncate">{h.title}</span>
+                <span className="text-caption tabular-nums">
+                  {h.hit}/{h.expected} days
+                  {h.hit ? <span className="text-text-muted"> · {[h.elite ? `${h.elite} Elite` : "", h.std ? `${h.std} Std` : "", h.min ? `${h.min} Min` : ""].filter(Boolean).join(" · ")}</span> : null}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       <p className="flex items-center gap-4 px-1 text-caption">
         <span className="flex items-center gap-1 text-success">
           <CheckCircleIcon className="size-4" /> {s.streaks.checkin}-day check-in streak

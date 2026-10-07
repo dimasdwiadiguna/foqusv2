@@ -23,6 +23,7 @@ import { achieveGoal, addMajorMove, deleteGoal, deleteMajorMove, dropGoal, setMa
 import type { Action, Goal, MajorMove, SeasonPlan } from "@/types";
 import { ActionList } from "@/components/actions/ActionList";
 import { RuleList } from "@/components/recurrence/RuleList";
+import { HabitsSection } from "@/components/habits/HabitsSection";
 import { GoalsList } from "@/components/goals/GoalsList";
 import { useIsDesktop } from "@/components/shell/useIsDesktop";
 import { StrengthCard } from "@/components/coach/Strength";
@@ -221,6 +222,9 @@ function GoalBody({ goal, plan, readOnly }: { goal: Goal; plan: SeasonPlan; read
         </h2>
         <RuleList goalId={goal.id} readOnly={readOnly} />
       </section>
+
+      {/* Habits that support this goal (Stage 2 exit) */}
+      {!readOnly ? <HabitsSection goalId={goal.id} title="Habits" /> : null}
 
       {/* 8. Stats */}
       <section aria-labelledby="stats" className="mb-4">
