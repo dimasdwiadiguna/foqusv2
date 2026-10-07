@@ -4,8 +4,10 @@ export * from "./structure";
 export * from "./time";
 export * from "./reflection";
 export * from "./google";
+export * from "./habits";
 
-import type { Settings, AvailabilityWindow, PeakWindow, PersonalBlock } from "./schedule";
+import type { Settings, AvailabilityWindow, PeakWindow, PersonalBlock, PrayerSettings } from "./schedule";
+import type { Habit, HabitLog } from "./habits";
 import type { Area, Season, Goal, SeasonPlan, MajorMove, RecurrenceRule, Action } from "./structure";
 import type { Block, FocusSession } from "./time";
 import type {
@@ -39,6 +41,9 @@ export interface Tables {
   coach_messages: CoachMessage;
   google_calendars: GoogleCalendar;
   external_events: ExternalEvent;
+  prayer_settings: PrayerSettings;
+  habits: Habit;
+  habit_logs: HabitLog;
 }
 
 export type TableName = keyof Tables;

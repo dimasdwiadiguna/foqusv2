@@ -65,6 +65,7 @@ async function syncRule(rule: RecurrenceRule, weekStart: DateString, day: DateSt
           recurrence_rule_id: rule.id,
           occurrence_date: date,
           completed_at: null,
+          session_pomodoros: null,
         });
         created++;
       } else if (!existing.deleted_at && (await untouched(existing))) {

@@ -10,6 +10,7 @@ import { controlClass, TextArea, TextField } from "@/components/ui/Field";
 import { Sheet } from "@/components/ui/Sheet";
 import { Switch } from "@/components/ui/Switch";
 import { EstimateStepper } from "./EstimateStepper";
+import { Stepper } from "@/components/ui/Stepper";
 import { markDone } from "./ActionRow";
 import { MoveSelect, OwnerSelect, type Owner } from "./OwnerSelect";
 
@@ -29,6 +30,7 @@ function ActionForm({ action, readOnly, onClose }: { action: Action; readOnly: b
   const [owner, setOwner] = useState<Owner>({ goal_id: action.goal_id, area_id: action.area_id });
   const [moveId, setMoveId] = useState(action.major_move_id);
   const [estimate, setEstimate] = useState(action.estimate_pomodoros);
+  const [session, setSession] = useState<number | null>(action.session_pomodoros ?? null);
   const [due, setDue] = useState(action.due_on ?? "");
   const [thisWeek, setThisWeek] = useState(action.planned_week !== null && action.planned_week === weekStart);
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +57,7 @@ function ActionForm({ action, readOnly, onClose }: { action: Action; readOnly: b
       area_id: owner.area_id,
       major_move_id: owner.goal_id ? moveId : null,
       estimate_pomodoros: estimate,
+      session_pomodoros: session,
       due_on: due || null,
       ...(thisWeek !== wasThisWeek ? { planned_week: thisWeek ? (weekStart ?? null) : null } : {}),
     });
@@ -87,6 +90,19 @@ function ActionForm({ action, readOnly, onClose }: { action: Action; readOnly: b
         <div className="mb-4 flex items-center justify-between gap-3">
           <span className="text-caption text-text-muted">Estimate</span>
           <EstimateStepper value={estimate} onChange={setEstimate} />
+        </div>
+        {/* Work that needs several sittings (Stage 2 exit): scheduled as sessions of this size. */}
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <span className="text-caption text-text-muted">
+            In sessions
+            <span className="block text-[12px]">{session ? `${Math.ceil(estimate / session)} sessions of ${session}` : "One sitting"}</span>
+          </span>
+          <div className="flex items-center gap-2">
+            {session ? (
+              <Stepper label="pomodoros per session" value={session} min={1} max={8} onChange={setSession} />
+            ) : null}
+            <Switch label="Split into sessions" checked={session !== null} onChange={(on) => setSession(on ? Math.max(1, Math.min(2, estimate)) : null)} />
+          </div>
         </div>
         <div className="mb-4">
           <label htmlFor="action-due" className="mb-1 block text-caption text-text-muted">

@@ -59,6 +59,7 @@ export async function draftMyWeek(weekStart: DateString): Promise<DraftResult> {
         goalRank: action.goal_id ? (goals.get(action.goal_id)?.rank ?? null) : null,
         planEndsOn: (goalPlans.find((p) => p.season_id === seasonOfDate(today)) ?? goalPlans[0])?.ends_on ?? null,
         preferredStart: action.recurrence_rule_id ? (rules.get(action.recurrence_rule_id)?.preferred_start ?? null) : null,
+        chunk: action.session_pomodoros ?? null,
       });
     }
     const result = draftWeek({

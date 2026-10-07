@@ -110,4 +110,9 @@ export interface Action extends RowMeta {
   recurrence_rule_id: string | null;
   occurrence_date: DateString | null;
   completed_at: Instant | null;
+  /**
+   * Stage 2 exit: the size of each session when the action needs several sittings (scheduled as
+   * several blocks of this many pomodoros). Null: one block up to the max per block.
+   */
+  session_pomodoros: number | null;
 }

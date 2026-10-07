@@ -22,6 +22,8 @@ export interface NewAction {
   notes?: string | null;
   /** Monday of the week list, or null for the backlog. */
   planned_week?: string | null;
+  /** Size of each session for work that needs several sittings; null for one block. */
+  session_pomodoros?: number | null;
 }
 
 type Owner = Pick<Action, "goal_id" | "area_id" | "major_move_id">;
@@ -76,13 +78,21 @@ export async function addAction(input: NewAction): Promise<Action> {
       recurrence_rule_id: null,
       occurrence_date: null,
       completed_at: null,
+      session_pomodoros: cleanSession(input.session_pomodoros ?? null),
     });
   });
 }
 
 export type ActionEdit = Partial<
-  Pick<Action, "title" | "notes" | "goal_id" | "area_id" | "major_move_id" | "estimate_pomodoros" | "due_on" | "planned_week">
+  Pick<Action, "title" | "notes" | "goal_id" | "area_id" | "major_move_id" | "estimate_pomodoros" | "due_on" | "planned_week" | "session_pomodoros">
 >;
+
+/** A session is 1 to 8 pomodoros (the settings maximum per block); null means one block. */
+function cleanSession(n: number | null): number | null {
+  if (n === null) return null;
+  if (!Number.isInteger(n) || n < 1 || n > 8) throw new Error("A session is 1 to 8 pomodoros.");
+  return n;
+}
 
 /**
  * Edit an action, including moving it between goals, areas, and major moves. Moving to an area
@@ -97,6 +107,7 @@ export async function updateAction(id: string, edit: ActionEdit): Promise<Action
     if (edit.notes !== undefined) patch.notes = edit.notes?.trim() || null;
     if (edit.estimate_pomodoros !== undefined) patch.estimate_pomodoros = clampEstimate(edit.estimate_pomodoros);
     if (edit.due_on !== undefined) patch.due_on = edit.due_on || null;
+    if (edit.session_pomodoros !== undefined) patch.session_pomodoros = cleanSession(edit.session_pomodoros);
     if (edit.planned_week !== undefined && edit.planned_week !== current.planned_week) {
       if (current.occurrence_date) throw new Error("A recurring action stays in its own week.");
       patch.planned_week = edit.planned_week;

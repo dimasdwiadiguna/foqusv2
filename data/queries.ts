@@ -219,8 +219,8 @@ export async function getUnresolvedBlocks(nowMs: number): Promise<Block[]> {
     .sort((a, b) => a.starts_at.localeCompare(b.starts_at));
 }
 
-/** What `lib/scheduler.pickSlot` needs for the rest of this week. */
-export async function getWeekContext(today: string) {
+/** What `lib/scheduler.pickSlot` needs from today to `until` (default: the end of this week). */
+export async function getWeekContext(today: string, until: string = endOfWeek(today)) {
   const settings = await getSettings();
   if (!settings) throw new Error("Settings are missing.");
   const windows = new Map<number, DaySchedule>();
@@ -228,7 +228,7 @@ export async function getWeekContext(today: string) {
   return {
     settings,
     personal: await getPersonalBlocks(),
-    blocks: await getBlocksForDays(addDays(today, -1), endOfWeek(today), settings.timezone),
+    blocks: await getBlocksForDays(addDays(today, -1), until, settings.timezone),
     windows: (w: Weekday) => ({ availability: windows.get(w)?.availability, peak: windows.get(w)?.peak }),
   };
 }

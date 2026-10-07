@@ -79,6 +79,11 @@ export function ActionRow({
               {action.occurrence_date ? formatShortDate(action.occurrence_date) : null}
             </span>
           ) : null}
+          {action.session_pomodoros ? (
+            <span>
+              {Math.ceil(action.estimate_pomodoros / action.session_pomodoros)} sessions of {action.session_pomodoros}
+            </span>
+          ) : null}
           {dropped ? <span>Dropped</span> : null}
           {action.due_on ? <span>Due {formatShortDate(action.due_on)}</span> : null}
           {open && action.planned_week && action.planned_week === weekStart ? (

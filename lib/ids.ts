@@ -3,6 +3,9 @@ import type { Weekday } from "@/types";
 
 export const SETTINGS_ID = "settings";
 export const COMPASS_ID = "compass";
+export const PRAYER_ID = "prayer";
+/** One habit's day (Stage 2 exit): `<habit_id>:<date>`. */
+export const habitLogId = (habitId: string, date: string) => `${habitId}:${date}`;
 export const OTHER_AREA_ID = "area-other";
 
 export const availabilityId = (weekday: Weekday) => `avail-${weekday}`;

@@ -73,3 +73,22 @@ describe("backup round trip (Step 1.5)", () => {
     expect(JSON.stringify(await getBackup("x"))).toBe(before);
   });
 });
+
+describe("backups from before version 2", () => {
+  it("imports a file without the new tables, keeping them on the device and filling session_pomodoros", async () => {
+    const { getDb } = await import("@/db");
+    const { importBackup } = await import("@/repo");
+    const { validateBackup } = await import("@/lib/backup");
+    const now = "2026-10-05T00:00:00.000Z";
+    const tables: Record<string, unknown[]> = {
+      actions: [{ id: "old", title: "Old task", estimate_pomodoros: 2, status: "todo", goal_id: null, area_id: "area-other", created_at: now, updated_at: now, deleted_at: null }],
+    };
+    const result = validateBackup({ format: "foqus-backup", version: 1, exported_at: now, tables });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.backup.absent).toEqual(expect.arrayContaining(["prayer_settings", "habits", "habit_logs"]));
+    await importBackup(result.backup);
+    expect(await getDb().t("actions").get("old")).toMatchObject({ session_pomodoros: null });
+    expect((await getDb().t("prayer_settings").get("prayer"))?.deleted_at).toBeNull();
+  });
+});

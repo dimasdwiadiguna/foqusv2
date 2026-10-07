@@ -19,6 +19,8 @@ export interface DraftItem {
   planEndsOn: DateString | null;
   /** Recurring occurrences: the rule's preferred start. */
   preferredStart: TimeString | null;
+  /** Actions split into sessions: each chunk is this size (Stage 2 exit). */
+  chunk?: number | null;
 }
 
 export interface DraftInput {
@@ -118,7 +120,7 @@ export function draftWeek(input: DraftInput): { blocks: DraftBlock[]; didntFit: 
     let remaining = item.unscheduled;
     while (remaining > 0) {
       let slot = null;
-      let size = Math.min(remaining, input.maxPerBlock);
+      let size = Math.min(remaining, item.chunk ?? input.maxPerBlock, input.maxPerBlock);
       // A smaller chunk that fits is placed; the rest is re-queued.
       for (; size >= 1; size--) {
         slot = pick(size);

@@ -35,3 +35,23 @@ export interface PersonalBlock extends RowMeta {
   active: boolean;
 }
 
+
+export type PrayerName = "subuh" | "dzuhur" | "ashar" | "maghrib" | "isya";
+
+/**
+ * Stage 2 exit — shalat times as fixed blocks. A single row with id `prayer`. Times are computed per
+ * day from the location (Kemenag RI convention); each span runs from `before_minutes` before adzan
+ * to `after_minutes` after it. On Fridays, Jumat replaces Dzuhur's span when enabled.
+ */
+export interface PrayerSettings extends RowMeta {
+  enabled: boolean;
+  latitude: number | null;
+  longitude: number | null;
+  location_label: string | null;
+  before_minutes: number;
+  after_minutes: number;
+  /** Extra minutes added to every computed time (Kemenag ihtiyat, 2 by default). */
+  ihtiyat_minutes: number;
+  prayers: Record<PrayerName, { enabled: boolean; adjust_minutes: number }>;
+  jumat: { enabled: boolean; before_minutes: number; after_minutes: number };
+}
