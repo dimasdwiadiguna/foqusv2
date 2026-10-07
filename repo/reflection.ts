@@ -2,7 +2,7 @@
  * Compass, the weekly review (§5.15), plan-strength snapshots (§5.17), and coach messages (§5.18).
  */
 import { getDb } from "@/db";
-import { getCoachInput, getReviewGoals, getStrengths, getWeekStats } from "@/data/coach";
+import { getCoachInput, getReviewGoals, getReviewHabits, getStrengths, getWeekStats } from "@/data/coach";
 import { getSettings } from "@/data/queries";
 import { dismissedUntil, evaluateRules, mergeInsights } from "@/lib/coach";
 import { COMPASS_ID } from "@/lib/ids";
@@ -126,12 +126,13 @@ export async function completeReview(week: DateString): Promise<WeeklyReview> {
   if (!settings) throw new Error("Settings are missing.");
   const stats = await getWeekStats(week, now);
   const goals = await getReviewGoals(now);
+  const habits = await getReviewHabits(week, now);
   const streaks = await getStreaks(todayIn(now, settings.timezone), settings.timezone);
   const row = await writeTx(["weekly_reviews"], async () => {
     const r = await reviewRow(week);
     if (r.completed_at) return r;
     return updateRow("weekly_reviews", week, {
-      stats: { ...stats, goals, streaks: { checkin: streaks.checkin.current, focus: streaks.focus.current } },
+      stats: { ...stats, goals, habits, streaks: { checkin: streaks.checkin.current, focus: streaks.focus.current } },
       completed_at: nowInstant(),
       step: REVIEW_STEPS.length,
     });

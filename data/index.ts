@@ -41,8 +41,13 @@ export {
   useQuarterlyDue,
   useSeasonStats,
   useSeason,
+  usePrayerSettings,
+  useBusyPersonal,
+  useHabits,
+  useHabitLogs,
+  useReviewHabits,
 } from "./hooks";
-export { getWeekStats, type GoalStrength, type ReviewGoal, type ReviewSnapshot } from "./coach";
+export { getWeekStats, type GoalStrength, type ReviewGoal, type ReviewHabit, type ReviewSnapshot } from "./coach";
 export { useDbReady, type DbState } from "./ready";
 export {
   getActivePlanSpans,

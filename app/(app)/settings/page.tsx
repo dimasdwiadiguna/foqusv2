@@ -7,6 +7,7 @@ import { FocusSettings } from "@/components/settings/FocusSettings";
 import { AreasSettings } from "@/components/settings/AreasSettings";
 import { ScheduleSettings } from "@/components/settings/ScheduleSettings";
 import { DataSettings } from "@/components/settings/DataSettings";
+import { ShalatSettings } from "@/components/settings/ShalatSettings";
 
 export default function SettingsPage() {
   const settings = useSettings();
@@ -16,6 +17,7 @@ export default function SettingsPage() {
     <>
       <ScreenHeader back={{ href: "/today", label: "Today" }} title="Settings" />
       <ScheduleSettings />
+      <ShalatSettings timeZone={settings.timezone} />
       <FocusSettings settings={settings} />
       <AreasSettings />
       <DataSettings timeZone={settings.timezone} />

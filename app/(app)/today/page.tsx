@@ -7,6 +7,7 @@ import { addDays, formatDayHeader, formatSeasonWeek } from "@/lib/time";
 import Link from "next/link";
 import { QuickAddButton } from "@/components/actions/QuickAddButton";
 import { DailyBrief } from "@/components/coach/DailyBrief";
+import { HabitStrip } from "@/components/habits/HabitStrip";
 import { SettingsIcon } from "@/components/shell/icons";
 import { useIsDesktop } from "@/components/shell/useIsDesktop";
 import { ScreenSkeleton } from "@/components/shell/AppShell";
@@ -52,6 +53,7 @@ export default function TodayPage() {
           <>
             <NextCard date={today} onOpenTray={() => setTrayOpen(true)} />
             <PromptCards date={today} />
+            <HabitStrip date={today} />
           </>
         )}
       </ScreenHeader>
@@ -62,6 +64,7 @@ export default function TodayPage() {
           <aside aria-label="Today at a glance" className="sticky top-20 flex flex-col gap-3 self-start">
             <NextCard date={today} onOpenTray={() => setTrayOpen(true)} />
             <PromptCards date={today} />
+            <HabitStrip date={today} />
             <PromptCards date={today} quiet />
             <DailyBrief className="px-1 text-caption" />
           </aside>

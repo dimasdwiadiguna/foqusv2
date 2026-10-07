@@ -29,6 +29,10 @@ const REQUIRED: Record<TableName, readonly string[]> = {
   coach_messages: ["title", "body", "status"],
   google_calendars: ["gcal_id", "mode"],
   external_events: ["calendar_id", "starts_at", "ends_at"],
+  // Stage 2 exit (Dexie version 2). Older backups simply have none of these.
+  prayer_settings: ["enabled", "before_minutes", "after_minutes"],
+  habits: ["title", "kind", "levels", "weekdays"],
+  habit_logs: ["habit_id", "date", "level"],
 };
 
 export const BACKUP_TABLES = Object.keys(REQUIRED) as TableName[];
@@ -40,6 +44,8 @@ export interface Backup {
   version: typeof BACKUP_VERSION;
   exported_at: Instant;
   tables: Record<TableName, BackupRow[]>;
+  /** Tables the file does not have at all (a backup made before they existed). Import leaves them alone. */
+  absent?: TableName[];
 }
 
 /** Build the file from every row of every table. The local-only `_dirty` flag is left out. */
@@ -89,6 +95,7 @@ export function validateBackup(raw: unknown): ValidationResult {
   if (unknown.length) return { ok: false, error: `This backup has a table FOQUS does not know: ${unknown[0]}.` };
 
   const tables = {} as Record<TableName, BackupRow[]>;
+  const absent = BACKUP_TABLES.filter((t) => !(t in (raw.tables as Record<string, unknown>)));
   let rows = 0;
   for (const t of BACKUP_TABLES) {
     const list = raw.tables[t] ?? [];
@@ -108,5 +115,5 @@ export function validateBackup(raw: unknown): ValidationResult {
     tables[t] = list as BackupRow[];
     rows += list.length;
   }
-  return { ok: true, backup: { format: BACKUP_FORMAT, version: BACKUP_VERSION, exported_at: raw.exported_at as string, tables }, rows };
+  return { ok: true, backup: { format: BACKUP_FORMAT, version: BACKUP_VERSION, exported_at: raw.exported_at as string, tables, absent }, rows };
 }

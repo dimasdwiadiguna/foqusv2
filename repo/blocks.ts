@@ -8,7 +8,7 @@ import { nowInstant } from "./clock";
 import { createRow, softDelete, updateRow } from "./rows";
 import { writeTx } from "./tx";
 
-const BLOCK_TABLES: TableName[] = ["blocks", "actions", "settings", "availability_windows", "peak_windows", "personal_blocks"];
+const BLOCK_TABLES: TableName[] = ["blocks", "actions", "settings", "availability_windows", "peak_windows", "personal_blocks", "prayer_settings"];
 
 export interface Placement {
   /** Epoch ms. */

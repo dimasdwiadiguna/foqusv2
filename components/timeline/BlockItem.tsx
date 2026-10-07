@@ -30,7 +30,10 @@ export function BlockItem({
   onTap,
   move,
   resize,
+  compact = false,
 }: {
+  /** Narrow multi-day columns: title only, no tags, tighter edges. */
+  compact?: boolean;
   view: BlockView;
   dragging: boolean;
   onTap: () => void;
@@ -43,7 +46,7 @@ export function BlockItem({
   const height = (view.endMin - view.startMin) * MINUTE_PX;
   const done = block.status === "done";
   const draft = block.status === "draft";
-  const tall = height >= 34;
+  const tall = !compact && height >= 34;
   // Filled (dark text on the goal color) only for committed goal blocks.
   const filled = isGoal && !draft;
 
@@ -56,7 +59,7 @@ export function BlockItem({
 
   return (
     <div
-      className="absolute right-1 left-2"
+      className={`absolute ${compact ? "right-0.5 left-0.5" : "right-1 left-2"}`}
       style={{ top: view.startMin * MINUTE_PX, height: height + block.buffer_minutes * MINUTE_PX, opacity: dragging ? 0.35 : 1 }}
     >
       <button
@@ -72,10 +75,10 @@ export function BlockItem({
         } ${draft ? "border-dashed" : ""} ${done ? "opacity-50" : ""} ${view.unresolved ? "!border-2 !border-danger" : ""}`}
         style={{ ...style, height }}
       >
-        <span className={`flex h-full flex-col px-2 ${tall ? "py-0.5" : "justify-center"}`}>
-          <span className="flex min-w-0 items-center gap-1">
+        <span className={`flex h-full flex-col ${compact ? "px-1 py-0.5" : "px-2"} ${tall ? "py-0.5" : compact ? "" : "justify-center"}`}>
+          <span className={`flex min-w-0 gap-1 ${compact ? "items-start" : "items-center"}`}>
             {done ? <span aria-hidden="true" className="inline-block animate-[pop_400ms_ease-out]">✓</span> : null}
-            <span className="truncate text-[14px] leading-4 font-semibold">{view.title}</span>
+            <span className={compact ? "line-clamp-2 text-[12px] leading-[14px] font-semibold break-words" : "truncate text-[14px] leading-4 font-semibold"}>{view.title}</span>
           </span>
           {tall ? (
             <span className={`flex min-w-0 items-center gap-2 text-[12px] leading-4 ${filled ? "" : "text-text-muted"}`}>
@@ -86,8 +89,8 @@ export function BlockItem({
           ) : null}
         </span>
         <span className="absolute top-1 right-1 flex gap-1">
-          {draft ? <Tag isGoal={filled}>draft</Tag> : null}
-          {block.off_peak ? <Tag isGoal={filled}>off-peak</Tag> : null}
+          {draft && !compact ? <Tag isGoal={filled}>draft</Tag> : null}
+          {block.off_peak && !compact ? <Tag isGoal={filled}>off-peak</Tag> : null}
           {view.unresolved ? (
             <span aria-hidden="true" className="flex size-5 items-center justify-center rounded-full bg-danger text-caption font-bold text-bg">
               ?

@@ -8,6 +8,7 @@
 import type { Block, DateString, Instant, PersonalBlock, TimeString } from "@/types";
 import { ceilTo, MINUTE, normalize, subtract, type Interval } from "./intervals";
 import { addDays, weekdayOf, zonedToInstant } from "./time";
+import { prayerSpans, prayerTitle, type PrayerConfig } from "./prayer";
 
 export const SNAP_MINUTES = 5;
 export const POMODORO_MINUTES = 30;
@@ -44,13 +45,37 @@ export function windowSpan(date: DateString, window: DayWindow | undefined, time
   return { start: ms(zonedToInstant(date, window.start_time, timeZone)), end: ms(zonedToInstant(date, window.end_time, timeZone)) };
 }
 
-type PersonalLike = Pick<PersonalBlock, "label" | "weekdays" | "start_time" | "end_time" | "active" | "deleted_at">;
+type PersonalBlockLike = Pick<PersonalBlock, "label" | "weekdays" | "start_time" | "end_time" | "active" | "deleted_at">;
 
-/** Active personal blocks that fall on this date, as intervals with their labels. */
-export function personalSpans(date: DateString, personal: readonly PersonalLike[], timeZone: string): (Interval & { label: string })[] {
+/**
+ * Shalat times as a source of fixed spans (Stage 2 exit). It travels in the same list as personal
+ * blocks, so everything that respects personal blocks (free time, placement warnings, slot picking,
+ * the draft, capacity) respects shalat too; the spans themselves are computed per date.
+ */
+export interface PrayerSource {
+  kind: "prayer";
+  config: PrayerConfig;
+}
+
+type PersonalLike = PersonalBlockLike | PrayerSource;
+
+export type PersonalSpan = Interval & { label: string; kind?: "prayer" };
+
+const isPrayer = (p: PersonalLike): p is PrayerSource => "kind" in p && p.kind === "prayer";
+
+/** Active personal blocks (and shalat spans) that fall on this date, as intervals with their labels. */
+export function personalSpans(date: DateString, personal: readonly PersonalLike[], timeZone: string): PersonalSpan[] {
   const weekday = weekdayOf(date);
-  const out: (Interval & { label: string })[] = [];
+  const out: PersonalSpan[] = [];
   for (const p of personal) {
+    if (isPrayer(p)) {
+      // Adzan times are not on the 5-minute grid; rounding each span's end up keeps the time after
+      // it on the grid blocks snap to.
+      for (const s of prayerSpans(date, p.config)) {
+        out.push({ start: s.start, end: ceilTo(s.end, SNAP_MINUTES), label: prayerTitle(s, timeZone), kind: "prayer" });
+      }
+      continue;
+    }
     if (!p.active || p.deleted_at || !p.weekdays.includes(weekday)) continue;
     const span = windowSpan(date, p, timeZone);
     if (span) out.push({ ...span, label: p.label });

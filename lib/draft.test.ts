@@ -88,6 +88,15 @@ describe("draftWeek (§5.11)", () => {
     expect(didntFit).toEqual([]);
   });
 
+  it("chunks an action split into sessions by its session size", () => {
+    const { blocks } = draftWeek({ ...base, items: [{ ...area("write", 6), chunk: 2 }] });
+    expect(blocks.map((b) => [b.date, b.pomodoros])).toEqual([
+      ["2026-10-06", 2],
+      ["2026-10-07", 2],
+      ["2026-10-08", 2],
+    ]);
+  });
+
   it("places a smaller chunk when a full one does not fit, and re-queues the rest", () => {
     // Only Sunday is left and it has 1 h 20 min of availability: 2 pomodoros + buffer fit, 4 do not.
     const windows = () => ({ availability: { start_time: "05:00", end_time: "06:20" }, peak: { start_time: "05:00", end_time: "06:20" } });

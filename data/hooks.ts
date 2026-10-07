@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { getAllRows, getRow, getSettings } from "./queries";
 import { startOfWeek, todayIn } from "@/lib/time";
 import * as q from "./queries";
-import { getQuarterlyDue, getReviewDue, getReviewGoals, getSeasonStats, getStrengths, getWeekStats } from "./coach";
+import { getQuarterlyDue, getReviewDue, getReviewGoals, getReviewHabits, getSeasonStats, getStrengths, getWeekStats } from "./coach";
 import { sortInsights, type RuleCode } from "@/lib/coach";
 import { COMPASS_ID } from "@/lib/ids";
 import type { TableName, Tables, Weekday } from "@/types";
@@ -167,3 +167,18 @@ export function useQuarterlyDue() {
 }
 export const useSeasonStats = (season: string | undefined) => useLiveQuery(async () => (season ? getSeasonStats(season, Date.now()) : undefined), [season]);
 export const useSeason = (id: string | undefined) => useLiveQuery(async () => (id ? ((await q.getRow("seasons", id)) ?? null) : undefined), [id]);
+
+// ---------------------------------------------------------------------------
+// Stage 2 exit: shalat
+
+export const usePrayerSettings = () => useLiveQuery(q.getPrayerSettings, []);
+/** Personal blocks plus shalat (when on): what timelines and suggestions schedule around. */
+export const useBusyPersonal = () => useLiveQuery(q.getBusyPersonal, []);
+
+// ---------------------------------------------------------------------------
+// Stage 2 exit: elastic habits
+
+export const useHabits = (includeArchived = false) => useLiveQuery(() => q.getHabits(includeArchived), [includeArchived]);
+export const useHabitLogs = (from: string | undefined, to: string | undefined) =>
+  useLiveQuery(async () => (from && to ? q.getHabitLogs(from, to) : []), [from, to]);
+export const useReviewHabits = (week: string | undefined) => useLiveQuery(async () => (week ? getReviewHabits(week, Date.now()) : undefined), [week]);

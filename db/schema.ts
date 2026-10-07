@@ -8,7 +8,7 @@ import type { TableName } from "@/types";
  */
 const SYNC = "_dirty, updated_at";
 
-export const SCHEMA_V1: Record<TableName, string> = {
+export const SCHEMA_V1: Record<Exclude<TableName, V2Table>, string> = {
   settings: `id, ${SYNC}`,
   availability_windows: `id, weekday, ${SYNC}`,
   peak_windows: `id, weekday, ${SYNC}`,
@@ -29,4 +29,17 @@ export const SCHEMA_V1: Record<TableName, string> = {
   coach_messages: `id, status, rule_code, goal_id, ${SYNC}`,
   google_calendars: `id, ${SYNC}`,
   external_events: `id, calendar_id, starts_at, ${SYNC}`,
+};
+
+/** Tables added in version 2 (the Stage 2 exit changes). */
+type V2Table = "prayer_settings" | "habits" | "habit_logs";
+
+/**
+ * Version 2 (Stage 2 exit): shalat settings, elastic habits and their daily logs. Actions gain
+ * `session_pomodoros` (not indexed; the upgrade fills it with null).
+ */
+export const SCHEMA_V2: Record<V2Table, string> = {
+  prayer_settings: `id, ${SYNC}`,
+  habits: `id, goal_id, area_id, sort_order, ${SYNC}`,
+  habit_logs: `id, habit_id, date, ${SYNC}`,
 };

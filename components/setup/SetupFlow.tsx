@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { readFirstRun, setFirstRun, useToday, useWindows } from "@/data";
+import { readFirstRun, setFirstRun, useSettings, useToday, useWindows } from "@/data";
 import { TIME_OPTIONS } from "@/lib/availability";
 import { REQUIRED_STEPS, SETUP_FLOW_STEPS } from "@/lib/first-run";
 import { seasonOfDate } from "@/lib/time";
@@ -10,6 +10,7 @@ import { copyWindowToAllDays, updateWindow } from "@/repo";
 import type { Weekday } from "@/types";
 import { CompassView } from "@/components/coach/CompassView";
 import { AreasSettings } from "@/components/settings/AreasSettings";
+import { ShalatSettings } from "@/components/settings/ShalatSettings";
 import { END_OPTIONS, PersonalBlocksSettings, TimeSelect } from "@/components/settings/ScheduleSettings";
 import { Button } from "@/components/ui/Button";
 import { markFirstRunDecided } from "./FirstRunGate";
@@ -25,6 +26,7 @@ const WEEKEND: Weekday[] = [6, 7];
 export function SetupFlow() {
   const router = useRouter();
   const today = useToday();
+  const settings = useSettings();
   const availability = useWindows("availability");
   const peak = useWindows("peak");
   const [step, setStepState] = useState(() => {
@@ -94,7 +96,7 @@ export function SetupFlow() {
             Step {step + 1} of {SETUP_FLOW_STEPS.length} · {SETUP_FLOW_STEPS[step]}
           </span>
         </div>
-        <div className="mt-2 grid grid-cols-6 gap-1" role="progressbar" aria-label="Setup progress" aria-valuemin={1} aria-valuemax={SETUP_FLOW_STEPS.length} aria-valuenow={step + 1}>
+        <div className="mt-2 grid gap-1" style={{ gridTemplateColumns: `repeat(${SETUP_FLOW_STEPS.length}, minmax(0, 1fr))` }} role="progressbar" aria-label="Setup progress" aria-valuemin={1} aria-valuemax={SETUP_FLOW_STEPS.length} aria-valuenow={step + 1}>
           {SETUP_FLOW_STEPS.map((s, i) => (
             <span key={s} className={`h-1 rounded-full ${i <= step ? "bg-accent" : "bg-border"}`} />
           ))}
@@ -126,19 +128,26 @@ export function SetupFlow() {
         ) : null}
         {step === 3 ? (
           <>
+            <h1 className="mb-1 text-title">Shalat times</h1>
+            <p className="mb-4 text-text-muted">Keep each shalat free on the timeline, from a few minutes before adzan to a few after. Skip this if you do not need it.</p>
+            <ShalatSettings timeZone={settings?.timezone ?? "Asia/Jakarta"} />
+          </>
+        ) : null}
+        {step === 4 ? (
+          <>
             <h1 className="mb-1 text-title">Areas</h1>
             <p className="mb-4 text-text-muted">The ongoing parts of your life that are not goals: work, teaching, home. Tasks without a goal live here.</p>
             <AreasSettings />
           </>
         ) : null}
-        {step === 4 ? (
+        {step === 5 ? (
           <>
             <h1 className="mb-1 text-title">Your compass</h1>
             <p className="mb-4 text-text-muted">A long-term vision and a few values. Reviews start here.</p>
             <CompassView />
           </>
         ) : null}
-        {step === 5 ? (
+        {step === 6 ? (
           <>
             <h1 className="mb-1 text-title">Your first goal</h1>
             <p className="text-text-muted">One clear goal for this quarter, with a plan. The goal wizard takes about five minutes.</p>

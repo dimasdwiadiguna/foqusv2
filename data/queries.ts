@@ -12,9 +12,12 @@ import type {
   DailyCheckin,
   FocusSession,
   Goal,
+  Habit,
+  HabitLog,
   MajorMove,
   PeakWindow,
   PersonalBlock,
+  PrayerSettings,
   RecurrenceRule,
   Season,
   SeasonPlan,
@@ -23,7 +26,9 @@ import type {
   Tables,
   Weekday,
 } from "@/types";
-import { availabilityId, peakId } from "@/lib/ids";
+import { availabilityId, peakId, PRAYER_ID } from "@/lib/ids";
+import type { PrayerSource } from "@/lib/availability";
+import { prayerReady } from "@/lib/prayer";
 import { addDays, dayBounds, endOfWeek, todayIn, weekDates, weekdayOf } from "@/lib/time";
 import { capacity, type Capacity } from "@/lib/capacity";
 import { completedByAction } from "@/lib/actions";
@@ -164,6 +169,21 @@ export async function getDaySchedule(weekday: Weekday): Promise<DaySchedule> {
   };
 }
 
+/** Shalat settings (Stage 2 exit), or null before they are seeded. */
+export async function getPrayerSettings(): Promise<PrayerSettings | null> {
+  return (await getRow("prayer_settings", PRAYER_ID)) ?? null;
+}
+
+/**
+ * Everything FOQUS schedules around besides blocks and events: personal blocks, plus shalat times
+ * when they are on (computed per date by `lib/availability.personalSpans`).
+ */
+export async function getBusyPersonal(): Promise<(PersonalBlock | PrayerSource)[]> {
+  const prayer = await getPrayerSettings();
+  const blocks = await getPersonalBlocks();
+  return prayerReady(prayer) ? [...blocks, { kind: "prayer", config: prayer }] : blocks;
+}
+
 export async function getPersonalBlocks(): Promise<PersonalBlock[]> {
   return (await getAllRows("personal_blocks")).sort((a, b) => a.start_time.localeCompare(b.start_time) || a.label.localeCompare(b.label));
 }
@@ -197,7 +217,7 @@ export async function getPlacementContext(date: string) {
   return {
     settings,
     ...(await getDaySchedule(weekdayOf(date))),
-    personal: await getPersonalBlocks(),
+    personal: await getBusyPersonal(),
     blocks: blocks.map((b) => ({ ...b, title: titles.get(b.action_id) ?? "" })) as TitledBlock[],
   };
 }
@@ -219,16 +239,16 @@ export async function getUnresolvedBlocks(nowMs: number): Promise<Block[]> {
     .sort((a, b) => a.starts_at.localeCompare(b.starts_at));
 }
 
-/** What `lib/scheduler.pickSlot` needs for the rest of this week. */
-export async function getWeekContext(today: string) {
+/** What `lib/scheduler.pickSlot` needs from today to `until` (default: the end of this week). */
+export async function getWeekContext(today: string, until: string = endOfWeek(today)) {
   const settings = await getSettings();
   if (!settings) throw new Error("Settings are missing.");
   const windows = new Map<number, DaySchedule>();
   for (const d of [1, 2, 3, 4, 5, 6, 7] as Weekday[]) windows.set(d, await getDaySchedule(d));
   return {
     settings,
-    personal: await getPersonalBlocks(),
-    blocks: await getBlocksForDays(addDays(today, -1), endOfWeek(today), settings.timezone),
+    personal: await getBusyPersonal(),
+    blocks: await getBlocksForDays(addDays(today, -1), until, settings.timezone),
     windows: (w: Weekday) => ({ availability: windows.get(w)?.availability, peak: windows.get(w)?.peak }),
   };
 }
@@ -292,7 +312,7 @@ export async function getCapacity(weekStart: string, nowMs: number): Promise<Cap
     timeZone: tz,
     now,
     windows: (w) => ({ availability: schedules.get(w)?.availability }),
-    personal: await getPersonalBlocks(),
+    personal: await getBusyPersonal(),
     events: [],
     blocks,
     goalActionIds: goalActions,
@@ -302,4 +322,18 @@ export async function getCapacity(weekStart: string, nowMs: number): Promise<Cap
 /** Live recurring rules, by title. */
 export async function getRules(): Promise<RecurrenceRule[]> {
   return (await getAllRows("recurrence_rules")).sort((a, b) => a.title.localeCompare(b.title));
+}
+
+// ---------------------------------------------------------------------------
+// Stage 2 exit: elastic habits
+
+
+/** Live habits by their order; archived ones only when asked. */
+export async function getHabits(includeArchived = false): Promise<Habit[]> {
+  return (await getAllRows("habits")).filter((h) => includeArchived || !h.archived_at).sort((a, b) => a.sort_order - b.sort_order);
+}
+
+/** Live habit logs on the local dates `from`…`to` (inclusive). */
+export async function getHabitLogs(from: string, to: string): Promise<HabitLog[]> {
+  return (await getDb().t("habit_logs").where("date").between(from, to, true, true).toArray()).filter((l) => !l.deleted_at);
 }

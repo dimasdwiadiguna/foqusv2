@@ -1,6 +1,6 @@
 /** The weekly draft (§5.11): draft blocks for the week, then Commit or Discard. */
 import { getDb } from "@/db";
-import { getDaySchedule, getPersonalBlocks, getSettings } from "@/data/queries";
+import { getDaySchedule, getBusyPersonal, getSettings } from "@/data/queries";
 import { actionNumbers } from "@/lib/actions";
 import { draftWeek, type DidntFit } from "@/lib/draft";
 import { addDays, dayBounds, endOfWeek, seasonOfDate, todayIn, weekDates } from "@/lib/time";
@@ -37,7 +37,7 @@ export async function draftMyWeek(weekStart: DateString): Promise<DraftResult> {
   const today = todayIn(now, tz);
   const schedules = new Map<number, Awaited<ReturnType<typeof getDaySchedule>>>();
   for (const d of [1, 2, 3, 4, 5, 6, 7] as Weekday[]) schedules.set(d, await getDaySchedule(d));
-  const personal = await getPersonalBlocks();
+  const personal = await getBusyPersonal();
 
   return writeTx(ALL_TABLES, async () => {
     for (const b of await draftsIn(weekStart, tz)) await softDelete("blocks", b.id);
@@ -59,6 +59,7 @@ export async function draftMyWeek(weekStart: DateString): Promise<DraftResult> {
         goalRank: action.goal_id ? (goals.get(action.goal_id)?.rank ?? null) : null,
         planEndsOn: (goalPlans.find((p) => p.season_id === seasonOfDate(today)) ?? goalPlans[0])?.ends_on ?? null,
         preferredStart: action.recurrence_rule_id ? (rules.get(action.recurrence_rule_id)?.preferred_start ?? null) : null,
+        chunk: action.session_pomodoros ?? null,
       });
     }
     const result = draftWeek({

@@ -12,6 +12,7 @@ import {
   useNow,
   useReview,
   useReviewGoals,
+  useReviewHabits,
   useRows,
   useStreaks,
   useWeekStats,
@@ -133,11 +134,12 @@ function LiveNumbers({ week }: { week: string }) {
   const stats = useWeekStats(week);
   const goals = useReviewGoals();
   const streaks = useStreaks();
-  if (!stats || !goals || !streaks) return null;
+  const habits = useReviewHabits(week);
+  if (!stats || !goals || !streaks || !habits) return null;
   return (
     <>
       <h1 className="mb-3 text-title">The numbers</h1>
-      <Numbers s={{ ...stats, goals, streaks: { checkin: streaks.checkin.current, focus: streaks.focus.current } }} />
+      <Numbers s={{ ...stats, goals, habits, streaks: { checkin: streaks.checkin.current, focus: streaks.focus.current } }} />
     </>
   );
 }

@@ -14,8 +14,8 @@ Spec and plan: `BRIEF.md` (the brief's own instructions call it `FOQUS-BUILD-BRI
 | 2.1 Daily loop | Done; owner checked |
 | 2.2 Planning help | Done; owner checked |
 | 2.3 Reviews and coach | Done; owner checked |
-| 2.4 Completion | Done; waiting for the owner (Stage 2 exit: use it through a weekly review, then feedback) |
-| 3.1 Schema and login | Next, after the Stage 2 exit conversation |
+| 2.4 Completion | Done; Stage 2 exit feedback applied (four parts below), waiting for the owner's checks |
+| 3.1 Schema and login | Next, once the owner has set up Supabase (Owner tasks) |
 | 3.2 Sync | Not started |
 | 3.3 Offline rules | Not started |
 | 4.1 Connect | Not started |
@@ -116,6 +116,16 @@ Spec and plan: `BRIEF.md` (the brief's own instructions call it `FOQUS-BUILD-BRI
 - Tests: `lib/quarterly` (24 December with an injected date, before it, after the quarter ends, other quarters, goals to resolve, the season note), repo tests for finishing refused until every goal is resolved and for carrying over (new plan, moved moves, open action kept, rule extended, idempotent), `lib/first-run`, `lib/shortcuts`.
 - Checked in Chromium: the quarterly prompt absent on 23 Dec and present on 24 Dec, the whole review with a resume midway, carry-over landing in Q1 2027, and the prompt gone after; first-run setup on a fresh profile with resume and saved hours, peak, and a personal block; at 1280×800 the sidebar, a centered quick-add dialog, the Today and Goals two-column layouts, seven Plan columns, a tray item dragged onto Thursday, the draft in the panel, arrow keys across a week boundary, and Space pausing and resuming Focus. Every earlier suite passes (they now mark setup as done first).
 
+### Stage 2 exit — owner feedback round (done)
+
+Four changes asked for before Stage 3, built as four parts (plan: 3-day Plan, sessions on one task, shalat times, elastic habits).
+
+- **Part A · 3-day Plan on mobile (done).** Plan shows the selected day and the next two side by side, sharing one hour gutter, with day headings under the week strip (which marks the three days). Swipe moves by a day; arrows still change the week; tray drags work into any column; a header toggle switches to one day and is remembered on the device (default three). Blocks in narrow columns show their title only (two lines). Desktop's seven-day board is the same component (`MultiDayBoard` in `components/timeline/WeekBoard.tsx`). Today stays one day.
+- **Data model, Dexie version 2 (done with Part B).** One upgrade for all four changes; version 1 is untouched. `actions.session_pomodoros` (null = one sitting; the upgrade fills null) and three new tables: `prayer_settings` (one row, id `prayer`, seeded off until a location is set), `habits`, `habit_logs` (id `<habit_id>:<date>`). All carry the sync metadata and are in `ALL_TABLES` and the backup. Backups made before version 2 still import: tables the file does not have are left as they are on the device, and older actions get `session_pomodoros: null`. **The Stage 3 migration must include these** (`types/schedule.ts` `PrayerSettings`, `types/habits.ts`).
+- **Part B · Sessions on one task (done).** The schedule sheet has "One block / Split into sessions": N sessions × k pomodoros, proposed on separate days by the slot rules (this week and next, peak first for goal work, never over the cap or any busy time), previewed, then scheduled together; the size is remembered on the action. The action sheet has "In sessions" (a switch and the size). The weekly draft and tray drags use the session size; the tray shows "1 of 3 sessions" and action rows "3 sessions of 2". `lib/sessions` (tested: 3 × 2 on three days, what does not fit is reported and never shortened, determinism, spilling into next week).
+- **Part C · Shalat times (done).** `lib/prayer` computes the five times with `adhan` (MIT, bundled) by the Kemenag RI convention: Subuh 20°, Isya 18°, Shafi'i Ashar, 2 minutes of ihtiyat rounded up, Dzuhur one more minute. Tested equal to Kemenag's published Jakarta schedule for 7 Oct 2026 (04:20, 11:44, 14:46, 17:49, 18:58, via liputan6.com). Spans run 5 minutes before adzan to 10 after (configurable), with Jumat (10 before, 45 after) in place of Dzuhur on Fridays, and per-prayer on/off and ± minutes. They travel with personal blocks (`PrayerSource` in `lib/availability`), so free time, capacity, the slot picker, sessions, and the draft never use them, and a manual placement over one asks "Place anyway?" ("This overlaps Ashar 14:46 (shalat)."). Each span's end rounds up to the 5-minute grid for scheduling. The timeline shows them hatched with a teal edge ("Ashar 14:46"), the Next card shows the next shalat when it comes before the next block ("NEXT · 14:41 – 14:56 · Ashar · Adzan 14:46 · then …"), and the check-in's Tomorrow step lists them. Settings → Shalat: on/off, "Use my location" (asks the browser once; coordinates stay on the device) or coordinates by hand, today's times, minutes before and after, Jumat, each prayer. First-run setup has an optional Shalat step (now seven steps).
+- **Part D · Elastic habits (done).** Habits are tracked, not scheduled, after Stephen Guise's Elastic Habits: three levels, Min (a hard day), Std, and Elite, and any level wins the day. A habit is a *count* (thresholds per level, a unit: "Water, 4/6/8 glasses") or *levels* (a short text per level: "1 stretch / 10 minutes / 30 minutes"), on chosen weekdays, optionally linked to a goal or area. One log per habit per day (id `<habit_id>:<date>`), editable today and yesterday. The streak counts consecutive expected days with any level and skips days the habit is not expected; today stays open until logged. `lib/habits` (tested), `repo/habits`. Today: a row of chips under the prompt cards (a ring fills to the level, with the streak); a count habit adds one per tap (confetti on reaching Elite) and a long-press opens a stepper; a level habit opens Min / Std / Elite / Not yet. Goals: a "Habits" section (streak, this week's hits and Elites, the editor: archive, pause, delete). A goal's page lists its linked habits. The daily check-in has a Habits step after Rate when any are due, and the close screen shows "2 of 2 done · 1 Elite · 1 Std". The weekly review's Numbers has a habits row, saved in the review snapshot. Plan strength and the coach do not use habits.
+
 ## Decisions
 
 Choices made where the brief was silent.
@@ -192,6 +202,7 @@ Choices made where the brief was silent.
 - **The season note is one text with two headed parts** ("What worked:", "What to change:") in `seasons.review_note`, so the data model is unchanged.
 - **Desktop layout switches in JavaScript** (`useIsDesktop`, 1024 px) rather than with CSS alone, so each screen mounts one layout and its hooks once; on a first paint the phone layout can show for a frame.
 - **Shortcuts ignore read-only fields**: the hidden input that primes the iPhone keyboard keeps focus after a sheet closes, and it must not swallow keys.
+- **Habits do not feed plan strength or the coach** (owner's choice: track and show). A long-press on a habit chip swallows the click that follows the release, which would otherwise close the sheet it just opened.
 - **Lint-enforced layering.** `app/` and `components/` may not import `db/` or Dexie. `lib/` may not import db, repo, data, or React.
 
 ## Deviations
@@ -240,3 +251,12 @@ The owner used the app for several days. Feedback: overall it feels nice; four c
   - On a computer, open the app in a wide window: sidebar, seven-day Plan, keys N, F, T, ← →, and Space in Focus.
   - The quarterly review appears on 24 December. Do it before the quarter ends.
 - **Stage 2 exit:** use the app through at least one weekly review, then tell Claude what to change before Stage 3 (data-model changes are cheapest now, before a server schema exists).
+- Stage 2 exit changes, checks on the iPhone:
+  - **Export a backup first** (gear on Today → Data → Export backup). The update upgrades the database to version 2 on first open.
+  - Plan shows three days; swipe by a day, drag from the tray into the third column, try the 1/3 toggle.
+  - Schedule an action of 4 or more pomodoros with "Split into sessions".
+  - Gear → Shalat → "Use my location" (allow it once), compare today's times with your masjid, adjust ± minutes. Check the timeline, the Next card, and Plan → Draft my week.
+  - Goals → Add a habit (a count one and a levels one); tap and long-press the chips on Today; do a check-in.
+- **Stage 3 setup (before Step 3.1)**, by the owner, never pasted into a chat:
+  - Create a Supabase project in the Singapore region; Authentication → turn sign-ups off; add your own user (email and password).
+  - Put the project URL and the publishable key (`sb_publishable_…`) in `.env.local` as `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, in Vercel's environment variables, and in the Claude cloud environment's variables.

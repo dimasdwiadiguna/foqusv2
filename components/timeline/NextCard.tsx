@@ -1,6 +1,7 @@
 "use client";
 
-import { useAreas, useBlocksForDays, useNow, useRows, useSettings } from "@/data";
+import { useAreas, useBlocksForDays, useNow, usePrayerSettings, useRows, useSettings } from "@/data";
+import { prayerSpans } from "@/lib/prayer";
 import { useEffect } from "react";
 import { dayNumbers, isDayWon, type DayNumbers } from "@/lib/checkin";
 import { toLocalTime } from "@/lib/time";
@@ -18,6 +19,7 @@ export function NextCard({ date, onOpenTray }: { date: string; onOpenTray: () =>
   const settings = useSettings();
   const now = useNow(30_000);
   const blocks = useBlocksForDays(date, date, settings?.timezone);
+  const prayer = usePrayerSettings();
   const actions = useRows("actions");
   const goals = useRows("goals");
   const areas = useAreas(true);
@@ -27,6 +29,26 @@ export function NextCard({ date, onOpenTray }: { date: string; onOpenTray: () =>
 
   const next = blocks.find((b) => (b.status === "scheduled" || b.status === "active") && Date.parse(b.ends_at) > now);
   if (!next && isDayWon(blocks)) return <DayWon date={date} numbers={dayNumbers(blocks)} />;
+  // Shalat (Stage 2 exit) shows as the next item when it comes before the next block.
+  const shalat = prayer ? prayerSpans(date, prayer).find((p) => p.end > now) : undefined;
+  if (shalat && (!next || shalat.start < Date.parse(next.starts_at))) {
+    const tz = settings.timezone;
+    const then = next ? actions?.find((a) => a.id === next.action_id)?.title : undefined;
+    return (
+      <section aria-label="Next" className="flex items-center gap-3 rounded-card border border-border bg-surface py-1.5 pr-3 pl-3" style={{ boxShadow: "inset 3px 0 0 var(--color-area-teal)" }}>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[12px] leading-4 font-medium tracking-wide text-accent uppercase">
+            {shalat.start <= now ? "Now" : "Next"} · {toLocalTime(shalat.start, tz)} – {toLocalTime(shalat.end, tz)}
+          </span>
+          <span className="block truncate text-[15px] leading-5 font-semibold">{shalat.label}</span>
+          <span className="block truncate text-[12px] leading-4 text-text-muted">
+            Adzan {toLocalTime(shalat.adzan, tz)}
+            {next && then ? ` · then ${then} at ${toLocalTime(next.starts_at, tz)}` : ""}
+          </span>
+        </span>
+      </section>
+    );
+  }
   if (!next) {
     return (
       <section aria-label="Next" className="flex items-center gap-2 rounded-card border border-border bg-surface py-1 pr-1 pl-3">

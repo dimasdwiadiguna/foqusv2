@@ -13,7 +13,8 @@ import { quarterlyDue } from "@/lib/quarterly";
 import { followThrough, peakSplit, weekStats, type WeekStats } from "@/lib/stats";
 import { addDays, dayBounds, parseSeasonId, quarterBounds, seasonOfDate, startOfWeek, todayIn, toLocalDate, weekDates, weekdayOf } from "@/lib/time";
 import type { Block, Goal, SeasonPlan, Weekday } from "@/types";
-import { getAllRows, getBlocksForDays, getCapacity, getDaySchedule, getPersonalBlocks, getSettings, type DaySchedule } from "./queries";
+import { getAllRows, getBlocksForDays, getCapacity, getDaySchedule, getBusyPersonal, getHabitLogs, getHabits, getSettings, type DaySchedule } from "./queries";
+import { habitWeek, type HabitWeek } from "@/lib/habits";
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -125,7 +126,7 @@ export async function getCoachInput(nowMs: number, strengths?: GoalStrength[]): 
   const weekStart = startOfWeek(today);
   const days = weekDates(weekStart);
   const sched = await schedules();
-  const personal = await getPersonalBlocks();
+  const personal = await getBusyPersonal();
   const all = strengths ?? (await getStrengths(nowMs));
   const actions = await getAllRows("actions");
   const goalActions = new Set(actions.filter((a) => a.goal_id).map((a) => a.id));
@@ -227,7 +228,7 @@ export async function getReviewGoals(nowMs: number): Promise<ReviewGoal[]> {
 }
 
 /** What a completed review stores in `stats` (§5.15): the week's numbers, per-goal numbers, and streaks. */
-export type ReviewSnapshot = WeekStats & { goals: ReviewGoal[]; streaks: { checkin: number; focus: number } };
+export type ReviewSnapshot = WeekStats & { goals: ReviewGoal[]; streaks: { checkin: number; focus: number }; habits?: ReviewHabit[] };
 
 /** The season whose quarterly review is due today (§5.16), or null. */
 export async function getQuarterlyDue(nowMs: number): Promise<string | null> {
@@ -276,4 +277,22 @@ export async function getSeasonStats(season: string, nowMs: number): Promise<Sea
   });
   const plans = (await getAllRows("season_plans")).filter((p) => p.season_id === season);
   return { ...base, achieved: plans.filter((p) => p.resolution === "achieved").length, goals: plans.length };
+}
+
+export interface ReviewHabit extends HabitWeek {
+  habit_id: string;
+  title: string;
+}
+
+/** Each active habit's week for the review (Stage 2 exit): days hit and levels reached. */
+export async function getReviewHabits(week: string, nowMs: number): Promise<ReviewHabit[]> {
+  const settings = await getSettings();
+  if (!settings) return [];
+  const days = weekDates(week);
+  const today = todayIn(nowMs, settings.timezone);
+  const logs = await getHabitLogs(days[0], days[6]);
+  return (await getHabits())
+    .filter((h) => h.active)
+    .map((h) => ({ habit_id: h.id, title: h.title, ...habitWeek(h.weekdays, logs.filter((l) => l.habit_id === h.id), days, today) }))
+    .filter((h) => h.expected > 0);
 }

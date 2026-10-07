@@ -62,3 +62,5 @@ export {
   REVIEW_STEPS,
 } from "./reflection";
 export { carryOverGoal, saveSeasonNote, finishQuarterlyReview } from "./quarterly";
+export { updatePrayerSettings, type PrayerEdit } from "./prayer";
+export { createHabit, updateHabit, archiveHabit, deleteHabit, reorderHabits, logHabit, type NewHabit, type HabitEdit } from "./habits";

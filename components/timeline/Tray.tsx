@@ -9,6 +9,7 @@ import {
   useWeekList,
 } from "@/data";
 import { actionNumbers } from "@/lib/actions";
+import { sessionProgress } from "@/lib/sessions";
 import { goalColor } from "@/lib/areas";
 import type { Action } from "@/types";
 import { ChevronDownIcon, RepeatIcon } from "@/components/shell/icons";
@@ -23,6 +24,8 @@ export interface TrayItem {
   unscheduled: number;
   owner: string;
   color: string;
+  /** For an action split into sessions: how many have a block. */
+  sessions?: { total: number; scheduled: number } | null;
 }
 
 /**
@@ -49,6 +52,7 @@ export function useTrayItems(
         return {
           action,
           unscheduled: actionNumbers(action, blocks, iso).unscheduled,
+          sessions: sessionProgress(action, blocks),
           owner: goal?.title ?? area?.name ?? "",
           color: goal ? goalColor(goal, areaMap) : (area?.color ?? "#9AA3B2"),
           rank: goal?.rank ?? Number.MAX_SAFE_INTEGER,
@@ -185,6 +189,7 @@ export function TrayRow({
           </span>
           <span className="block truncate text-caption text-text-muted">
             {item.action.occurrence_date ? `${formatShortDate(item.action.occurrence_date)} · ` : ""}
+            {item.sessions ? `${item.sessions.scheduled} of ${item.sessions.total} sessions · ` : ""}
             {item.owner}
           </span>
         </span>
@@ -202,10 +207,10 @@ export function TrayRow({
   );
 }
 
-/** Max pomodoros for a block created from an item. */
+/** Max pomodoros for a block created from an item: its session size when it has one. */
 export function chunkFor(
-  item: Pick<TrayItem, "unscheduled">,
+  item: Pick<TrayItem, "unscheduled"> & { action?: Pick<Action, "session_pomodoros"> },
   maxPerBlock: number,
 ): number {
-  return Math.min(Math.max(item.unscheduled, 1), maxPerBlock);
+  return Math.min(Math.max(item.unscheduled, 1), item.action?.session_pomodoros ?? maxPerBlock, maxPerBlock);
 }
