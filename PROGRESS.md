@@ -116,6 +116,12 @@ Spec and plan: `BRIEF.md` (the brief's own instructions call it `FOQUS-BUILD-BRI
 - Tests: `lib/quarterly` (24 December with an injected date, before it, after the quarter ends, other quarters, goals to resolve, the season note), repo tests for finishing refused until every goal is resolved and for carrying over (new plan, moved moves, open action kept, rule extended, idempotent), `lib/first-run`, `lib/shortcuts`.
 - Checked in Chromium: the quarterly prompt absent on 23 Dec and present on 24 Dec, the whole review with a resume midway, carry-over landing in Q1 2027, and the prompt gone after; first-run setup on a fresh profile with resume and saved hours, peak, and a personal block; at 1280×800 the sidebar, a centered quick-add dialog, the Today and Goals two-column layouts, seven Plan columns, a tray item dragged onto Thursday, the draft in the panel, arrow keys across a week boundary, and Space pausing and resuming Focus. Every earlier suite passes (they now mark setup as done first).
 
+### Stage 2 exit — owner feedback round (in progress)
+
+Four changes asked for before Stage 3, built as four parts (plan: 3-day Plan, sessions on one task, shalat times, elastic habits).
+
+- **Part A · 3-day Plan on mobile (done).** Plan shows the selected day and the next two side by side, sharing one hour gutter, with day headings under the week strip (which marks the three days). Swipe moves by a day; arrows still change the week; tray drags work into any column; a header toggle switches to one day and is remembered on the device (default three). Blocks in narrow columns show their title only (two lines). Desktop's seven-day board is the same component (`MultiDayBoard` in `components/timeline/WeekBoard.tsx`). Today stays one day.
+
 ## Decisions
 
 Choices made where the brief was silent.

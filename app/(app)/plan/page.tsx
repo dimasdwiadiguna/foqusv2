@@ -17,7 +17,8 @@ import { BackIcon } from "@/components/shell/icons";
 import { TimelineBoard } from "@/components/timeline/TimelineBoard";
 import { WeekStrip } from "@/components/timeline/WeekStrip";
 import { CapacityMeter } from "@/components/timeline/CapacityMeter";
-import { WeekBoard, WeekHeadings } from "@/components/timeline/WeekBoard";
+import { DayHeadings, MultiDayBoard, WeekBoard, WeekHeadings } from "@/components/timeline/WeekBoard";
+import { usePlanDays } from "@/components/timeline/usePlanDays";
 import { useIsDesktop } from "@/components/shell/useIsDesktop";
 import { IconButton } from "@/components/ui/Button";
 import { ScreenHeader } from "@/components/ui/ScreenHeader";
@@ -40,18 +41,24 @@ function validDate(s: string | null): string | null {
   }
 }
 
-/** Plan (§6.7): the week strip, a day timeline, and the tray. Arrows change week; swipe changes day. */
+/**
+ * Plan (§6.7): the week strip, the timeline, and the tray. On the phone it shows three days side by
+ * side by default (owner feedback), or one; arrows change week; swipe moves by a day.
+ */
 function Plan() {
   const today = useToday();
   const params = useSearchParams();
   const router = useRouter();
   const [trayOpen, setTrayOpen] = useState(false);
   const desktop = useIsDesktop();
+  const [dayCount, setDayCount] = usePlanDays();
   if (!today) return <ScreenSkeleton />;
   const date = validDate(params.get("date")) ?? today;
   const go = (d: string) =>
     router.replace(`/plan?date=${d}`, { scroll: false });
   const { week, weeks } = seasonWeekNumber(date);
+  // The phone shows the selected day and, in the three-day view, the two after it.
+  const shown = dayCount === 3 ? [date, addDays(date, 1), addDays(date, 2)] : [date];
 
   return (
     <>
@@ -88,6 +95,19 @@ function Plan() {
             <IconButton label="Next week" onClick={() => go(addDays(date, 7))}>
               <BackIcon className="size-6 rotate-180" />
             </IconButton>
+            {desktop ? null : (
+              <IconButton
+                label={dayCount === 3 ? "Show one day" : "Show three days"}
+                onClick={() => setDayCount(dayCount === 3 ? 1 : 3)}
+                className="text-text-muted"
+              >
+                <span aria-hidden="true" className="flex h-5 items-stretch gap-0.5">
+                  {Array.from({ length: dayCount === 3 ? 1 : 3 }, (_, i) => (
+                    <span key={i} className={`rounded-sm border-2 border-current ${dayCount === 3 ? "w-4" : "w-1.5"}`} />
+                  ))}
+                </span>
+              </IconButton>
+            )}
             <QuickAddButton preset={{ thisWeek: true }} />
           </>
         }
@@ -101,13 +121,18 @@ function Plan() {
           </>
         ) : (
           <>
-            <WeekStrip date={date} today={today} onSelect={go} />
+            <WeekStrip date={date} today={today} onSelect={go} shown={shown} />
             <CapacityMeter weekStart={startOfWeek(date)} />
+            {dayCount === 3 ? (
+              <div className="mt-1.5">
+                <DayHeadings days={shown} today={today} counts={false} />
+              </div>
+            ) : null}
           </>
         )}
       </ScreenHeader>
       <h2 className="sr-only">
-        {desktop ? formatWeekRange(date) : formatDayHeader(date)}
+        {desktop ? formatWeekRange(date) : dayCount === 3 ? `${formatDayHeader(shown[0])} to ${formatDayHeader(shown[2])}` : formatDayHeader(date)}
       </h2>
       {desktop ? (
         <WeekBoard
@@ -115,6 +140,17 @@ function Plan() {
           today={today}
           weekStart={startOfWeek(today)}
           planning={startOfWeek(date) === startOfWeek(today)}
+        />
+      ) : dayCount === 3 ? (
+        <MultiDayBoard
+          days={shown}
+          today={today}
+          weekStart={startOfWeek(today)}
+          planning={startOfWeek(date) === startOfWeek(today)}
+          tray="bottom"
+          trayOpen={trayOpen}
+          onTrayOpenChange={setTrayOpen}
+          onSwipeDay={(d) => go(addDays(date, d))}
         />
       ) : (
         <TimelineBoard

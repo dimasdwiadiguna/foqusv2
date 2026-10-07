@@ -40,7 +40,10 @@ export function DayTimeline({
   handleRef,
   gutter = true,
   autoScroll = true,
+  compact = false,
 }: {
+  /** Narrow column (multi-day boards): blocks show their title only. */
+  compact?: boolean;
   /** Hour labels on the left. Off for the desktop week's columns, which share one gutter. */
   gutter?: boolean;
   /** Scroll the page to now (or the day's start) when the day opens. */
@@ -308,7 +311,7 @@ export function DayTimeline({
         ))}
 
         {views.map((v) => (
-          <BlockItem key={v.block.id} view={v} dragging={preview?.blockId === v.block.id} onTap={() => openBlock(v.block)} {...gestureFor(v)} />
+          <BlockItem key={v.block.id} view={v} dragging={preview?.blockId === v.block.id} onTap={() => openBlock(v.block)} compact={compact} {...gestureFor(v)} />
         ))}
 
         {/* Drag preview with its target time; red when it would overlap another block */}

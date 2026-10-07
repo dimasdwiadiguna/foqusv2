@@ -7,9 +7,9 @@ import { formatDayHeader, parseDate, toLocalDate, weekDates } from "@/lib/time";
 
 /**
  * Plan's week strip (§6.7): seven days with their planned pomodoros. A day over the daily cap shows
- * "!" in the danger color. The selected day is underlined.
+ * "!" in the danger color. The selected day is underlined; other days shown alongside it, lightly.
  */
-export function WeekStrip({ date, today, onSelect }: { date: string; today: string; onSelect: (d: string) => void }) {
+export function WeekStrip({ date, today, onSelect, shown }: { date: string; today: string; onSelect: (d: string) => void; shown?: string[] }) {
   const settings = useSettings();
   const days = weekDates(date);
   const blocks = useBlocksForDays(days[0], days[6], settings?.timezone);
@@ -29,6 +29,8 @@ export function WeekStrip({ date, today, onSelect }: { date: string; today: stri
         const n = load.get(d) ?? 0;
         const over = n > cap;
         const selected = d === date;
+        // The other days visible in the three-day view: a lighter mark.
+        const alsoShown = !selected && Boolean(shown?.includes(d));
         return (
           <button
             key={d}
@@ -38,7 +40,7 @@ export function WeekStrip({ date, today, onSelect }: { date: string; today: stri
             aria-label={`${formatDayHeader(d)}, ${n} pomodoros${over ? `, over your cap of ${cap}` : ""}`}
             onClick={() => onSelect(d)}
             className={`flex min-h-11 flex-col items-center justify-center rounded-block border-b-2 ${
-              selected ? "border-accent bg-surface-raised" : "border-transparent"
+              selected ? "border-accent bg-surface-raised" : alsoShown ? "border-accent/40 bg-surface-raised/60" : "border-transparent"
             }`}
           >
             <span className={`text-[12px] leading-4 ${d === today ? "font-semibold text-accent" : "text-text-muted"}`}>
