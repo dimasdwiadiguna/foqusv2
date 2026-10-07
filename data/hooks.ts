@@ -167,3 +167,10 @@ export function useQuarterlyDue() {
 }
 export const useSeasonStats = (season: string | undefined) => useLiveQuery(async () => (season ? getSeasonStats(season, Date.now()) : undefined), [season]);
 export const useSeason = (id: string | undefined) => useLiveQuery(async () => (id ? ((await q.getRow("seasons", id)) ?? null) : undefined), [id]);
+
+// ---------------------------------------------------------------------------
+// Stage 2 exit: shalat
+
+export const usePrayerSettings = () => useLiveQuery(q.getPrayerSettings, []);
+/** Personal blocks plus shalat (when on): what timelines and suggestions schedule around. */
+export const useBusyPersonal = () => useLiveQuery(q.getBusyPersonal, []);

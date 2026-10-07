@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { getStreaks, useAreas, useBlocksForDays, useCheckin, usePersonalBlocks, useRows, useSettings, useStreaks, useToday, useUnresolvedBlocks } from "@/data";
+import { getStreaks, useAreas, useBlocksForDays, useCheckin, usePersonalBlocks, usePrayerSettings, useRows, useSettings, useStreaks, useToday, useUnresolvedBlocks } from "@/data";
 import { closingLine, dayNumbers, isCheckinEditable, NOTE_MAX } from "@/lib/checkin";
 import { milestoneReached } from "@/lib/streaks";
+import { prayerSpans, prayerTitle } from "@/lib/prayer";
 import { addDays, formatDayHeader, toLocalDate, toLocalTime, weekdayOf } from "@/lib/time";
 import { completeCheckin, saveCheckin } from "@/repo";
 import type { DailyCheckin, Settings } from "@/types";
@@ -273,10 +274,11 @@ function DotRating({ label, low, high, value, onChange }: { label: string; low: 
   );
 }
 
-/** Step 4: a read-only look at tomorrow (§5.14): its blocks and personal blocks. */
+/** Step 4: a read-only look at tomorrow (§5.14): its blocks, personal blocks, and shalat times. */
 function TomorrowStep({ date, settings }: { date: string; settings: Settings }) {
   const blocks = useBlocksForDays(date, date, settings.timezone);
   const personal = usePersonalBlocks();
+  const prayer = usePrayerSettings();
   const actions = useRows("actions");
   const goals = useRows("goals");
   const areas = useAreas(true);
@@ -303,6 +305,16 @@ function TomorrowStep({ date, settings }: { date: string; settings: Settings }) 
     ...personal
       .filter((p) => p.active && p.weekdays.includes(weekday))
       .map((p) => ({ key: p.id, time: p.start_time, end: p.end_time, title: p.label, sub: "Personal", dots: 0, draft: false, personal: true })),
+    ...(prayer ? prayerSpans(date, prayer) : []).map((p) => ({
+      key: `prayer-${p.name}`,
+      time: toLocalTime(p.start, tz),
+      end: toLocalTime(p.end, tz),
+      title: prayerTitle(p, tz),
+      sub: "Shalat",
+      dots: 0,
+      draft: false,
+      personal: true,
+    })),
   ].sort((a, b) => a.time.localeCompare(b.time));
   const pomodoros = blocks.filter((b) => b.status === "scheduled").reduce((n, b) => n + b.planned_pomodoros, 0);
 

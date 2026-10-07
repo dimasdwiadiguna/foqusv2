@@ -15,8 +15,8 @@ describe("first-run setup", () => {
     expect(parseFirstRun("garbage")).toBeNull();
     expect(parseFirstRun(null)).toBeNull();
   });
-  it("has six steps without Google, and only availability is required", () => {
-    expect(SETUP_FLOW_STEPS).toEqual(["Availability", "Peak", "Personal blocks", "Areas", "Compass", "First goal"]);
+  it("has seven steps without Google (Shalat added at the Stage 2 exit), and only availability is required", () => {
+    expect(SETUP_FLOW_STEPS).toEqual(["Availability", "Peak", "Personal blocks", "Shalat", "Areas", "Compass", "First goal"]);
     expect([...REQUIRED_STEPS]).toEqual([0]);
   });
 });

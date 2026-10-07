@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
-import { useAreas, useBlocksForDays, useDaySchedule, useNow, usePersonalBlocks, useRows, useSettings } from "@/data";
+import { useAreas, useBlocksForDays, useDaySchedule, useNow, useBusyPersonal, useRows, useSettings } from "@/data";
 import { goalColor } from "@/lib/areas";
 import { blockSpan, daySpan, personalSpans, POMODORO_MINUTES, windowSpan } from "@/lib/availability";
 import { MINUTE } from "@/lib/intervals";
@@ -57,7 +57,7 @@ export function DayTimeline({
   const tz = settings?.timezone;
   const now = useNow(30_000);
   const schedule = useDaySchedule(weekdayOf(date));
-  const personal = usePersonalBlocks();
+  const personal = useBusyPersonal();
   const blocks = useBlocksForDays(date, date, tz);
   const actions = useRows("actions");
   const goals = useRows("goals");
@@ -295,18 +295,22 @@ export function DayTimeline({
           />
         ) : null}
 
-        {/* Personal blocks: hatched, labelled, not tappable */}
+        {/* Personal blocks and shalat: hatched, labelled, not tappable. Shalat has a teal edge. */}
         {personalOnDay.map((p, i) => (
           <div
             key={i}
-            className="pointer-events-none absolute right-1 left-2 flex items-start overflow-hidden rounded-block px-2 pt-1 text-caption text-text-muted"
+            className={`pointer-events-none absolute flex items-start overflow-hidden rounded-block pt-0.5 text-caption leading-4 text-text-muted ${compact ? "right-0.5 left-0.5 px-1 text-[11px]" : "right-1 left-2 px-2"}`}
             style={{
               top: toMin(p.start) * MINUTE_PX,
               height: (p.end - p.start) / MINUTE * MINUTE_PX,
-              background: "repeating-linear-gradient(45deg, rgba(160,166,177,0.16) 0 3px, transparent 3px 9px)",
+              background:
+                p.kind === "prayer"
+                  ? "repeating-linear-gradient(45deg, rgba(77,208,225,0.14) 0 3px, transparent 3px 9px)"
+                  : "repeating-linear-gradient(45deg, rgba(160,166,177,0.16) 0 3px, transparent 3px 9px)",
+              boxShadow: p.kind === "prayer" ? "inset 3px 0 0 var(--color-area-teal)" : undefined,
             }}
           >
-            {p.label}
+            <span className="truncate">{p.label}</span>
           </div>
         ))}
 

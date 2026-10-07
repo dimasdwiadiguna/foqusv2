@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getWeekContext, useBlocksForActions, useBlocksForDays, useDaySchedule, useNow, usePersonalBlocks, useSettings, useToday } from "@/data";
+import { getWeekContext, useBlocksForActions, useBlocksForDays, useDaySchedule, useNow, useBusyPersonal, useSettings, useToday } from "@/data";
 import type { DraftBlock } from "@/lib/draft";
 import { defaultSplit, planSessions } from "@/lib/sessions";
 import { placeBlock, updateAction } from "@/repo";
@@ -244,7 +244,7 @@ function ScheduleForm({
   const [busy, setBusy] = useState(false);
 
   const schedule = useDaySchedule(weekdayOf(date));
-  const personal = usePersonalBlocks();
+  const personal = useBusyPersonal();
   const dayBlocks = useBlocksForDays(date, date, tz);
 
   // Until the owner picks a time, suggest the first free slot that day.

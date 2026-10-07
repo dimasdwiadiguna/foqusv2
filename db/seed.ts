@@ -4,6 +4,9 @@
  * Idempotent: a row that already exists, even soft-deleted, is left alone.
  */
 import type { Area, AvailabilityWindow, Instant, PeakWindow, PrayerSettings, RowMeta, Settings, Weekday } from "@/types";
+import { DEFAULT_PRAYER } from "@/lib/prayer";
+
+export { DEFAULT_PRAYER };
 import type { FoqusDb } from "./index";
 import { newMeta } from "./meta";
 
@@ -57,25 +60,6 @@ export function seedOtherArea(now: Instant): Area {
     archived_at: null,
   };
 }
-
-/** Shalat settings (Stage 2 exit): off until a location is set; 5 minutes before and 10 after adzan. */
-export const DEFAULT_PRAYER = {
-  enabled: false,
-  latitude: null,
-  longitude: null,
-  location_label: null,
-  before_minutes: 5,
-  after_minutes: 10,
-  ihtiyat_minutes: 2,
-  prayers: {
-    subuh: { enabled: true, adjust_minutes: 0 },
-    dzuhur: { enabled: true, adjust_minutes: 0 },
-    ashar: { enabled: true, adjust_minutes: 0 },
-    maghrib: { enabled: true, adjust_minutes: 0 },
-    isya: { enabled: true, adjust_minutes: 0 },
-  },
-  jumat: { enabled: true, before_minutes: 10, after_minutes: 45 },
-} satisfies Omit<PrayerSettings, keyof RowMeta>;
 
 export function seedPrayer(now: Instant): PrayerSettings {
   return { ...newMeta(PRAYER_ID, now), ...DEFAULT_PRAYER };

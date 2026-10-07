@@ -13,7 +13,7 @@ import { quarterlyDue } from "@/lib/quarterly";
 import { followThrough, peakSplit, weekStats, type WeekStats } from "@/lib/stats";
 import { addDays, dayBounds, parseSeasonId, quarterBounds, seasonOfDate, startOfWeek, todayIn, toLocalDate, weekDates, weekdayOf } from "@/lib/time";
 import type { Block, Goal, SeasonPlan, Weekday } from "@/types";
-import { getAllRows, getBlocksForDays, getCapacity, getDaySchedule, getPersonalBlocks, getSettings, type DaySchedule } from "./queries";
+import { getAllRows, getBlocksForDays, getCapacity, getDaySchedule, getBusyPersonal, getSettings, type DaySchedule } from "./queries";
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -125,7 +125,7 @@ export async function getCoachInput(nowMs: number, strengths?: GoalStrength[]): 
   const weekStart = startOfWeek(today);
   const days = weekDates(weekStart);
   const sched = await schedules();
-  const personal = await getPersonalBlocks();
+  const personal = await getBusyPersonal();
   const all = strengths ?? (await getStrengths(nowMs));
   const actions = await getAllRows("actions");
   const goalActions = new Set(actions.filter((a) => a.goal_id).map((a) => a.id));

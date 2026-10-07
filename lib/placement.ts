@@ -102,7 +102,7 @@ export function checkPlacement(input: PlacementInput): PlacementResult {
   }
 
   const personal = personalSpans(date, input.personal, timeZone).find((p) => overlaps(span, p));
-  if (personal) warnings.push({ kind: "personal", message: `This overlaps ${personal.label}, a personal block.` });
+  if (personal) warnings.push({ kind: "personal", message: personal.kind === "prayer" ? `This overlaps ${personal.label} (shalat).` : `This overlaps ${personal.label}, a personal block.` });
 
   const window = windowSpan(date, input.availability, timeZone);
   if (!window || !within(span, [window])) {
